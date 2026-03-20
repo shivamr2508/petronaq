@@ -13,6 +13,7 @@ function LoginPage() {
 
   const handleLogin = async (e)=>{
     e.preventDefault();
+      const t = showLoading("Logging in..."); // ✅ ADD THIS
 
     try{
       await loginUser(email,password);

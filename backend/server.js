@@ -77,3 +77,16 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
  
 });        
+
+
+import path from "path";
+
+const __dirname = path.resolve();
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../Frontend/dist")));
+
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname, "../Frontend", "dist", "index.html"))
+  );
+}

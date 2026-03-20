@@ -67,9 +67,9 @@ app.get("/api/protected", protect, (req, res) => {
         
 //---------------------------
 
-app.get("/", (req, res) => {        
-  res.send("PetRonaq API is running...");
-});
+// app.get("/", (req, res) => {        
+//   res.send("PetRonaq API is running...");
+// });
 
 
 const path = require("path");

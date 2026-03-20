@@ -71,15 +71,9 @@ app.get("/", (req, res) => {
   res.send("PetRonaq API is running...");
 });
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
- 
-});        
 
 
-import path from "path";
+const path = require("path");
 
 const __dirname = path.resolve();
 
@@ -90,3 +84,12 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.resolve(__dirname, "../Frontend", "dist", "index.html"))
   );
 }
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+ 
+});        
+
+

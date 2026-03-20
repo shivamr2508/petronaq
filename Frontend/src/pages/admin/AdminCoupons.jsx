@@ -17,7 +17,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/coupons",
+      "/api/coupons",
       {
         headers:{
           Authorization:`Bearer ${token}`
@@ -36,7 +36,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     await axios.post(
-      "http://localhost:5000/api/coupons",
+      "/api/coupons",
       { code, discount },
       {
         headers:{
@@ -57,7 +57,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `http://localhost:5000/api/coupons/${id}`,
+      `/api/coupons/${id}`,
       {
         headers:{
           Authorization:`Bearer ${token}`

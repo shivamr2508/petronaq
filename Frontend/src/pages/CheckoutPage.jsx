@@ -100,7 +100,7 @@ const fetchCartItems = async () => {
     // Buy Now flow → fetch product directly
 
     const res = await axios.get(
-      `http://localhost:5000/api/products/${checkoutProductId}`
+      `/api/products/${checkoutProductId}`
     );
 
     const product = res.data;
@@ -131,7 +131,7 @@ const fetchCartItems = async () => {
 //     const token = localStorage.getItem("token");
 
 //     const res = await axios.get(
-//       "http://localhost:5000/api/coupons",
+//       "/api/coupons",
 //       {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ const applyCoupon = async () => {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/coupons",
+      "/api/coupons",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -225,7 +225,7 @@ const applyCoupon = async () => {
 //   const token = localStorage.getItem("token");
 
 //   const res = await axios.get(
-//     "http://localhost:5000/api/cart",
+//     "/api/cart",
 //     {
 //       headers: {
 //         Authorization: `Bearer ${token}`
@@ -244,7 +244,7 @@ const applyCoupon = async () => {
 // if (checkoutProductId) {
 
 //   const productRes = await axios.get(
-//     `http://localhost:5000/api/products/${checkoutProductId}`
+//     `/api/products/${checkoutProductId}`
 //   );
 
 //   const product = productRes.data;
@@ -1100,7 +1100,7 @@ export default CheckoutPage;
 //       const token = localStorage.getItem("token");
 
 //       const res = await axios.get(
-//         "http://localhost:5000/api/coupons",
+//         "/api/coupons",
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,

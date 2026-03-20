@@ -14,7 +14,7 @@ function ReviewButton({ productId, orderId, navigate }) {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `http://localhost:5000/api/reviews/check/${productId}`,
+          `/api/reviews/check/${productId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`

@@ -13,7 +13,7 @@ function AdminProducts() {
   const fetchProducts = async()=>{
 
     const res = await axios.get(
-      "http://localhost:5000/api/products"
+      "/api/products"
     );
 
     setProducts(res.data);
@@ -25,7 +25,7 @@ function AdminProducts() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `http://localhost:5000/api/products/${id}`,
+      `/api/products/${id}`,
       {
         headers:{
           Authorization:`Bearer ${token}`

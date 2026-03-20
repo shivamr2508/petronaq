@@ -38,7 +38,7 @@ function ReviewPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `http://localhost:5000/api/reviews/${productId}`,
+        `/api/reviews/${productId}`,
         {
           rating,
           comment,

@@ -16,7 +16,7 @@ const fetchOrders = async()=>{
 const token = localStorage.getItem("token");
 
 const res = await axios.get(
-"http://localhost:5000/api/orders",
+"/api/orders",
 {
 headers:{ Authorization:`Bearer ${token}` }
 }
@@ -36,7 +36,7 @@ const updateStatus = async(id,status)=>{
 const token = localStorage.getItem("token");
 
 await axios.put(
-`http://localhost:5000/api/orders/${id}/status`,
+`/api/orders/${id}/status`,
 { status },
 {
 headers:{ Authorization:`Bearer ${token}` }

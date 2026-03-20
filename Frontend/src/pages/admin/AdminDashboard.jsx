@@ -32,7 +32,7 @@
 //     const token = localStorage.getItem("token");
 
 //     const response = await axios.get(
-//       "http://localhost:5000/api/admin/analytics",
+//       "/api/admin/analytics",
 //       {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
@@ -203,7 +203,7 @@ function AdminDashboard() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/admin/analytics",
+      "/api/admin/analytics",
       {
         headers: { Authorization: `Bearer ${token}` }
       }

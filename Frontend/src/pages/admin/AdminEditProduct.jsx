@@ -27,7 +27,7 @@ function AdminEditProduct() {
   const fetchProduct = async()=>{
 
     const res = await axios.get(
-      `http://localhost:5000/api/products/${id}`
+      `/api/products/${id}`
     );
 
     const product = res.data;
@@ -71,7 +71,7 @@ function AdminEditProduct() {
       formData.append("image",image);
 
       const uploadRes = await axios.post(
-        "http://localhost:5000/api/upload",
+        "/api/upload",
         formData,
         {
           headers:{
@@ -85,7 +85,7 @@ function AdminEditProduct() {
     }
 
     await axios.put(
-      `http://localhost:5000/api/products/${id}`,
+      `/api/products/${id}`,
       {
         name,
         price,

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "/api/auth";
 
 export const loginUser = async (email, password) => {
 
@@ -39,7 +39,7 @@ export const getProfile = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "http://localhost:5000/api/auth/profile",
+    "/api/auth/profile",
     {
       headers: {
         Authorization: `Bearer ${token}`,

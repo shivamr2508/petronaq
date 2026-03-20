@@ -92,7 +92,7 @@ const handleBuyNow = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       const response = await axios.get(
-        `http://localhost:5000/api/products/${id}`,
+        `/api/products/${id}`,
       );
 
       setProduct(response.data);
@@ -102,7 +102,7 @@ const handleBuyNow = () => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/reviews/${id}`,
+          `/api/reviews/${id}`,
         );
         setReviews(response.data);
       } catch (error) {

@@ -12,7 +12,7 @@ function AdminReviewsPage() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/reviews/admin/all",
+        "/api/reviews/admin/all",
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -36,7 +36,7 @@ function AdminReviewsPage() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `http://localhost:5000/api/reviews/${id}`,
+      `/api/reviews/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -52,7 +52,7 @@ function AdminReviewsPage() {
     const token = localStorage.getItem("token");
 
     await axios.put(
-      `http://localhost:5000/api/reviews/reply/${id}`,
+      `/api/reviews/reply/${id}`,
       { reply },
       {
         headers: {

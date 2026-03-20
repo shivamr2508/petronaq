@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/cart";
+const API_URL = "/api/cart";
 
 export const addToCart = async (productId, quantity = 1) => {
 
@@ -28,7 +28,7 @@ export const getCart = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "http://localhost:5000/api/cart",
+    "/api/cart",
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -44,7 +44,7 @@ export const removeFromCart = async (productId) => {
   const token = localStorage.getItem("token");
 
   await axios.delete(
-    `http://localhost:5000/api/cart/remove/${productId}`,
+    `/api/cart/remove/${productId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -60,7 +60,7 @@ export const updateCartItem = async (productId, quantity) => {
 
   const res = await axios.put(
 
-    "http://localhost:5000/api/cart/update",
+    "/api/cart/update",
 
     {
       productId,

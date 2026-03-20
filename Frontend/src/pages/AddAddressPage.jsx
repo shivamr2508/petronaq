@@ -38,7 +38,7 @@ function AddAddressPage() {
     console.log("Sending address:", addressData);
 
     await axios.post(
-      "http://localhost:5000/api/address",
+      "/api/address",
       addressData,
       {
         headers: {

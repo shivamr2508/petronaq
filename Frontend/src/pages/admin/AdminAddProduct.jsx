@@ -54,7 +54,7 @@ function AdminAddProduct() {
         formData.append("image",img);
 
         const uploadRes = await axios.post(
-          "http://localhost:5000/api/upload",
+          "/api/upload",
           formData,
           {
             headers:{
@@ -68,7 +68,7 @@ function AdminAddProduct() {
       }
 
       await axios.post(
-        "http://localhost:5000/api/products",
+        "/api/products",
         {
           name,
           price:Number(price),

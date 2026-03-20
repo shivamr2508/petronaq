@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/orders";
+const API_URL = "/api/orders";
 
 export const placeOrder = async (orderData) => {
 
@@ -25,7 +25,7 @@ export const getMyOrders = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "http://localhost:5000/api/orders/my",
+    "/api/orders/my",
     {
       headers: {
         Authorization: `Bearer ${token}`,

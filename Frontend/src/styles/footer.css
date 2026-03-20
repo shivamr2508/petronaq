@@ -1,0 +1,27 @@
+/* HIDE FOOTER ON MOBILE */
+
+.footer{
+  display:none;
+}
+
+
+@media (min-width:1024px){
+
+.footer {
+  display:block;
+  background: #111;
+  color: #ccc;
+  margin-top: 60px;
+  
+
+  text-align:center;
+ }
+
+
+
+
+.footer .container {
+  text-align: center;
+  padding: 30px 20px;
+ }
+}

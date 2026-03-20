@@ -1,0 +1,89 @@
+.wishlist-container{
+  padding:16px;
+  padding-bottom:90px;
+   background:
+  radial-gradient(circle at 50% 0%, #f5ede3 0%, transparent 40%),
+  linear-gradient(180deg,#f6f1ea,#efe7db);
+}
+
+.wishlist-title{
+  font-size:26px;
+  font-weight:700;
+  margin-bottom:18px;
+  color:#1f2d3d;
+}
+
+.empty-wishlist{
+  text-align:center;
+  margin-top:40px;
+  color:#777;
+}
+
+/* CARD */
+
+.wishlist-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:white;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* IMAGE */
+
+.wishlist-image{
+  width:80px;
+  height:80px;
+  object-fit:cover;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* INFO */
+
+.wishlist-info{
+  flex:1;
+  cursor:pointer;
+}
+
+.product-name{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:4px;
+}
+
+.product-price{
+  font-size:15px;
+  color:#2c3e50;
+  font-weight:600;
+}
+
+/* BUTTON */
+
+.remove-btn{
+  background:rgb(222, 121, 121);;
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+/* TABLET */
+
+@media (min-width:768px){
+
+.wishlist-image{
+  width:100px;
+  height:100px;
+}
+
+.product-name{
+  font-size:18px;
+}
+
+}

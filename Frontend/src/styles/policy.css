@@ -1,0 +1,60 @@
+/* Container */
+
+.policy-container{
+  padding:18px;
+  padding-bottom:90px;
+  max-width:700px;
+  margin:auto;
+}
+
+/* Title */
+
+.policy-container h2{
+  font-size:24px;
+  font-weight:700;
+  margin-bottom:16px;
+  color:#1f2d3d;
+}
+
+/* Paragraphs */
+
+.policy-container p{
+  font-size:15px;
+  line-height:1.7;
+  color:#444;
+  margin-bottom:14px;
+}
+
+/* Contact info highlight */
+
+.policy-container p strong{
+  color:#000;
+}
+
+/* Card style for sections */
+
+.policy-container section{
+  background:white;
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Tablet */
+
+@media (min-width:768px){
+
+.policy-container{
+  padding:30px;
+}
+
+.policy-container h2{
+  font-size:28px;
+}
+
+.policy-container p{
+  font-size:16px;
+}
+
+}

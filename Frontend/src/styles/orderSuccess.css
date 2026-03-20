@@ -1,0 +1,148 @@
+/* Page Background */
+
+.success-container{
+min-height:70vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+
+background:linear-gradient(
+135deg,
+#efe7e4,
+#f6f3f2,
+#ffffff
+);
+}
+
+/* Content */
+
+.success-content{
+text-align:center;
+max-width:420px;
+width:100%;
+}
+
+/* Icon */
+
+.success-icon{
+font-size:48px;
+margin-bottom:10px;
+animation:pop 0.5s ease;
+}
+
+/* Title */
+
+.success-title{
+font-size:28px;
+font-weight:700;
+color:#1f2d3d;
+margin-bottom:6px;
+}
+
+/* Subtitle */
+
+.success-subtitle{
+color:#666;
+margin-bottom:20px;
+}
+
+/* Card */
+
+.success-card{
+background:white;
+border-radius:18px;
+padding:20px;
+box-shadow:
+0 12px 30px rgba(0,0,0,0.08),
+0 4px 10px rgba(0,0,0,0.05);
+
+border-top:6px solid #4e7d69;
+margin-bottom:20px;
+}
+
+/* Rows */
+
+.order-row{
+display:flex;
+justify-content:space-between;
+margin:10px 0;
+font-size:15px;
+}
+
+.order-id{
+font-weight:600;
+word-break:break-all;
+}
+
+.order-total{
+font-weight:700;
+color:#2f5f4d;
+}
+
+.order-status{
+color:#e67e22;
+font-weight:600;
+}
+
+/* Button */
+
+.continue-btn{
+width:100%;
+padding:14px;
+
+border:none;
+border-radius:14px;
+
+background:linear-gradient(
+135deg,
+#4e7d69,
+#6fa68e
+);
+
+color:white;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+
+transition:0.2s;
+}
+
+.continue-btn:hover{
+transform:translateY(-2px);
+}
+
+/* Animation */
+
+@keyframes pop{
+0%{transform:scale(0.7)}
+100%{transform:scale(1)}
+}
+
+/* Tablet */
+
+@media (min-width:768px){
+
+.success-title{
+font-size:32px;
+}
+
+.success-card{
+padding:24px;
+}
+
+}
+
+/* Desktop */
+
+@media (min-width:1024px){
+
+.success-container{
+padding:40px;
+}
+
+.success-content{
+max-width:500px;
+}
+
+}

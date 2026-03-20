@@ -1,0 +1,94 @@
+:root{
+
+  --primary:#4F7A6A;
+--primary-light:#6E9F8D;
+--primary-dark:#3f6657;
+
+--accent-gradient:linear-gradient(135deg,#6E9F8D,#4F7A6A);
+
+  --secondary:#ff9ecb;
+
+  --bg:#fff7fb;
+
+  --card:#ffffff;
+
+  --text:#1f2937;
+
+  --muted:#6b7280;
+
+  --border:#f1e6ec;
+
+  --radius:18px;
+
+  --shadow:0 10px 30px rgba(0,0,0,0.08);
+
+}
+
+/* Reset */
+
+* {
+  box-sizing: border-box;
+}
+main{
+  padding-bottom:40px;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Content container */
+
+.container {
+
+  max-width: 1280px;
+  margin: auto;
+  padding: 0 20px;
+
+}
+
+/* Sections */
+
+.section {
+
+  padding: 80px 0;
+
+}
+
+/* Buttons */
+
+.btn {
+
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+
+}
+
+.btn-primary {
+
+  background: var(--primary);
+  color: white;
+
+}
+
+.btn-primary:hover {
+
+  background: var(--primary-dark);
+
+}
+
+/* Titles */
+
+.section-title {
+
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 30px;
+
+}

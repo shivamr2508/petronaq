@@ -1,0 +1,137 @@
+.admin-edit-page{
+padding:18px;
+max-width:900px;
+margin:auto;
+}
+
+.page-title{
+font-size:26px;
+font-weight:700;
+margin-bottom:18px;
+color:#1f2b40;
+}
+
+.form-card{
+background:white;
+border-radius:18px;
+padding:20px;
+box-shadow:0 12px 30px rgba(0,0,0,0.08);
+}
+
+.admin-product-form{
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+/* SECTION */
+
+.form-section{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.form-section h3{
+font-size:16px;
+font-weight:600;
+color:#444;
+}
+
+/* INPUTS */
+
+.admin-product-form input,
+.admin-product-form textarea{
+
+padding:12px;
+
+border-radius:8px;
+
+border:1px solid #ddd;
+
+font-size:14px;
+
+outline:none;
+
+}
+
+.admin-product-form textarea{
+min-height:100px;
+resize:vertical;
+}
+
+/* CHECKBOX GROUP */
+
+.checkbox-group{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:8px;
+}
+
+.checkbox-group label{
+display:flex;
+align-items:center;
+gap:6px;
+font-size:14px;
+}
+
+/* CURRENT IMAGE */
+
+.current-image{
+width:150px;
+border-radius:10px;
+margin-bottom:8px;
+border:1px solid #ddd;
+}
+
+/* BUTTON */
+
+.submit-btn{
+
+margin-top:10px;
+
+background:linear-gradient(135deg,#ff7a18,#ff4d6d);
+
+color:white;
+
+border:none;
+
+padding:14px;
+
+font-size:16px;
+
+font-weight:600;
+
+border-radius:10px;
+
+cursor:pointer;
+
+}
+
+.submit-btn:hover{
+opacity:.9;
+}
+
+/* TABLET */
+
+@media (min-width:700px){
+
+.checkbox-group{
+grid-template-columns:repeat(3,1fr);
+}
+
+}
+
+/* DESKTOP */
+
+@media (min-width:1000px){
+
+.admin-edit-page{
+padding:30px;
+}
+
+.form-card{
+padding:30px;
+}
+
+}

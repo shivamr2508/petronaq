@@ -1,0 +1,45 @@
+.account-container{
+  padding:18px;
+  padding-bottom:90px;
+}
+
+.account-title{
+  font-size:24px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.account-subtitle{
+  color:#666;
+  margin-bottom:20px;
+}
+
+/* MENU */
+
+.account-menu{
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.account-item{
+  padding:16px;
+  font-size:16px;
+  border-bottom:1px solid #eee;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+
+.account-item:last-child{
+  border-bottom:none;
+}
+
+.account-item:hover{
+  background:#f6f6f6;
+}
+
+.logout{
+  color:#d9534f;
+  font-weight:600;
+}

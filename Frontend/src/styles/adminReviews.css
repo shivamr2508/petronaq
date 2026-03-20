@@ -1,0 +1,21 @@
+.admin-review-card {
+  border: 1px solid #eee;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  background: white;
+}
+
+.admin-review-card input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-reply {
+  background: #f3f3f3;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+}

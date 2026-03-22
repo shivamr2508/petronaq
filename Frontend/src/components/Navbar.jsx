@@ -275,11 +275,20 @@ useEffect(() => {
       PetRonaq
     </Link>
 
-    {user ? (
-      <span>Hello, {user.name}</span>
-    ) : (
-      <Link to="/register" className="signup">Sign Up</Link>
+   {user ? (
+  <>
+    <span>Hello, {user.name}</span>
+
+    {user.role === "admin" && (
+      <Link to="/admin" className="signup">
+        Admin Panel
+      </Link>
     )}
+  </>
+) : (
+  <Link to="/register" className="signup">Sign Up</Link>
+)}
+
 
   </div>
 
@@ -358,7 +367,15 @@ useEffect(() => {
     <FaUser />
   </Link>
 
+  {user?.role === "admin" && (
+  <Link to="/admin" className="admin-btn">
+    🛠 Admin
+  </Link>
+)}
+
   </div>
+
+
 
 </div>
 

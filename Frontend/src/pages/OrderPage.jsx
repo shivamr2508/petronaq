@@ -66,7 +66,7 @@ function OrdersPage() {
               Order #{order._id.slice(-6)}
             </div>
 
-            <div className={`status-badge ${order.status}`}>
+            <div className={`status-badge ${order.status.replace(/\s+/g, "-")}`}>
               {order.status}
             </div>
 

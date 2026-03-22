@@ -57,6 +57,8 @@ app.use("/api/admin", adminRoutes);
 
 app.use("/api/coupons", couponRoutes);
 
+app.use("/uploads", express.static("uploads"));
+
 //test ---------------------
 app.get("/api/protected", protect, (req, res) => {
   res.json({

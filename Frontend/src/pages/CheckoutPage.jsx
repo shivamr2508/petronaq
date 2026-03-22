@@ -15,7 +15,7 @@ function CheckoutPage() {
 
   const [showAddressForm, setShowAddressForm] = useState(false);
  
-  
+  const [placingOrder, setPlacingOrder] = useState(false);
 
 const [newAddress, setNewAddress] = useState({
   fullName: "",
@@ -377,17 +377,55 @@ const handleSaveAddress = async () => {
 
   };
 
- const handleOrder = async () => {
+//  const handleOrder = async () => {
+
+//   if (!selectedAddress) {
+
+//     // alert("Select address");
+//      showError("Please select or Add an address");
+//     return;
+
+//   }
+
+//   try {
+
+//     const orderItems = cartItems.map(item => ({
+//       productId: item.product._id,
+//       quantity: item.quantity
+//     }));
+
+//     const order = await placeOrder({
+//       addressId: selectedAddress,
+//       items: orderItems
+//     });
+
+//       showSuccess("Order placed successfully 🎉");
+//     navigate("/order-success", {
+//       state: { order }
+//     });
+
+//   } catch (error) {
+
+//     console.error(error);
+//        showError("Order failed. Try again");   
+
+//   }
+
+// };
+
+
+const handleOrder = async () => {
+
+  if (placingOrder) return; // 🚨 prevent double click
 
   if (!selectedAddress) {
-
-    // alert("Select address");
-     showError("Please select or Add an address");
+    showError("Please select an address");
     return;
-
   }
 
   try {
+
+    setPlacingOrder(true);
 
     const orderItems = cartItems.map(item => ({
       productId: item.product._id,
@@ -396,22 +434,26 @@ const handleSaveAddress = async () => {
 
     const order = await placeOrder({
       addressId: selectedAddress,
-      items: orderItems
+      items: orderItems,
+       discount: discount  
     });
 
-      showSuccess("Order placed successfully 🎉");
+    showSuccess("Order placed successfully 🎉");
+
     navigate("/order-success", {
       state: { order }
     });
 
   } catch (error) {
 
-    console.error(error);
-       showError("Order failed. Try again");   
+    showError("Order failed. Try again");
 
+  } finally {
+    setPlacingOrder(false);
   }
 
 };
+
 
 const calculateDelivery = (addressId) => {
 
@@ -919,10 +961,11 @@ Apply Coupon
 
 
 <button
-className="place-order-btn"
-onClick={handleOrder}
+  className="place-order-btn"
+  onClick={handleOrder}
+  disabled={placingOrder}
 >
-Place Order (COD)
+  {placingOrder ? "Placing Order..." : "Place Order (COD)"}
 </button>
 
 </div>

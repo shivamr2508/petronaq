@@ -507,4 +507,24 @@ body{
 
 }
 
+.admin-btn {
+  margin-left: 10px;
+  padding: 6px 12px;
+  background: #ff6b6b;
+  color: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: 0.2s ease;
+}
+
+.admin-btn:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+}
+
 }

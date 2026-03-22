@@ -129,68 +129,64 @@ function ProductCard({ product, onWishlist }) {
 
   return (
 
-    <div className="product-card">
-
       <Link
-        to={`/product/${product._id}`}
-        className="product-image-wrapper"
+    to={`/product/${product._id}`}
+    className="product-card"
+  >
+
+    {/* IMAGE */}
+    <div className="product-image-wrapper">
+
+      <img
+        src={product.images?.[0]}
+        alt={product.name}
+        className="product-image"
+      />
+
+      <button
+        className="wishlist-btn"
+        onClick={handleWishlistClick}
       >
+        <FaHeart />
+      </button>
 
-        <img
-          src={product.images?.[0]}
-          alt={product.name}
-          className="product-image"
-        />
+    </div>
 
-        <button
-          className="wishlist-btn"
-          onClick={handleWishlistClick}
-        >
-          <FaHeart />
-        </button>
+    {/* CONTENT */}
+    <div className="product-content">
 
-      </Link>
+      <h3 className="product-name">
+        {product.name}
+      </h3>
 
+      <div className="product-rating">
+        {product.numReviews > 0 && (
+          <>
+            {"★".repeat(Math.round(product.ratings))}
+            {"☆".repeat(5 - Math.round(product.ratings))}
 
-      <div className="product-content">
+            <span className="review-count">
+              {product.ratings.toFixed(1)} ({product.numReviews})
+            </span>
+          </>
+        )}
+      </div>
 
-        <Link
-          to={`/product/${product._id}`}
-          className="product-name"
-        >
-          {product.name}
-        </Link>
+      <div className="product-bottom">
 
-    <div className="product-rating">
+        <span className="product-price">
+          ₹{product.price}
+        </span>
 
-  {product.numReviews > 0 && (
-    <>
-      {"★".repeat(Math.round(product.ratings))}
-      {"☆".repeat(5 - Math.round(product.ratings))}
-
-      <span className="review-count">
-        {product.ratings.toFixed(1)} ({product.numReviews})
-      </span>
-    </>
-  )}
-
-</div>
-
-    <div className="product-bottom">
-
-  <span className="product-price">
-    ₹{product.price}
-  </span>
-
-  <span className="product-view">
-    View →
-  </span>
-
-</div>
+        <span className="product-view">
+          View →
+        </span>
 
       </div>
 
     </div>
+
+  </Link>
 
   );
 

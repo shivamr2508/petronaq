@@ -87,10 +87,17 @@ setTimeout(()=>{
 window.location.href="/";
 },1200);
 
-}catch{
+}catch (error) {
 
-// ❌ error
-updateError("Signup failed. Try again.", t);
+  const backendMsg = error.response?.data?.message;
+
+  let message = "Signup failed";
+
+  if (backendMsg === "User already exists") {
+    message = "Email already exists";
+  }
+
+  updateError(message, t);
 
 }
 

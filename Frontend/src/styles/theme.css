@@ -61,8 +61,8 @@ body {
 /* Buttons */
 
 .btn {
-
-  padding: 12px 20px;
+  margin-top: 7px;
+  padding: 9px 18px;
   border-radius: 10px;
   border: none;
   cursor: pointer;

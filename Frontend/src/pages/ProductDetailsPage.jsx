@@ -227,7 +227,8 @@ const handleBuyNow = () => {
 
       {reviews.length === 0 && <p>No reviews yet</p>}
 
-      {reviews.map((review) => (
+      {/* {reviews.map((review) => (
+
         <div key={review._id} className="review-card">
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <strong>{review.user?.name}</strong>
@@ -253,8 +254,23 @@ const handleBuyNow = () => {
           </div>
 
           <p>{review.comment}</p>
+          {review.images && review.images.length > 0 && (
+  <div style={{ marginTop: "10px" }}>
+    <img
+      src={`http://localhost:5000${review.images[0]}`}
+      alt="review"
+      style={{
+        width: "120px",
+        height: "120px",
+        objectFit: "cover",
+        borderRadius: "8px",
+        border: "1px solid #ddd"
+      }}
+    />
+  </div>
+)}
 
-          {/*  Admin Reply */}
+          
 
             {review.adminReply && (
 
@@ -270,9 +286,75 @@ const handleBuyNow = () => {
 
           <small>{new Date(review.createdAt).toLocaleDateString()}</small>
         </div>
-      ))}
+      ))} */}
+
+
+          {reviews.map((review) => {
+
+  console.log("Review images:", review.images); // 👈 ADD HERE
+
+  return (
+
+    <div key={review._id} className="review-card">
+
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <strong>{review.user?.name}</strong>
+
+        {review.isVerifiedPurchase && (
+          <span
+            style={{
+              background: "#4caf50",
+              color: "white",
+              padding: "2px 8px",
+              fontSize: "12px",
+              borderRadius: "5px",
+            }}
+          >
+            Verified Purchase
+          </span>
+        )}
+      </div>
+
+      <div style={{ color: "gold", margin: "5px 0" }}>
+        {"★".repeat(review.rating)}
+        {"☆".repeat(5 - review.rating)}
+      </div>
+
+      <p>{review.comment}</p>
+
+      {review.images && review.images.length > 0 && (
+        <div style={{ marginTop: "10px" }}>
+          <img
+            src={`http://localhost:5000${review.images[0]}`}
+            alt="review"
+            style={{
+              width: "120px",
+              height: "120px",
+              objectFit: "cover",
+              borderRadius: "8px",
+              border: "1px solid #ddd"
+            }}
+          />
+        </div>
+      )}
+
+      {review.adminReply && (
+        <div className="admin-reply">
+          <strong>PetRonaq Reply:</strong>
+          <p>{review.adminReply}</p>
+        </div>
+      )}
+
+      <small>{new Date(review.createdAt).toLocaleDateString()}</small>
+
+    </div>
+
+  );
+
+})}
+
+
     </div>
   );
-}
-
+};
 export default ProductDetailsPage;

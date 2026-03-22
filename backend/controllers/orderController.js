@@ -1,4 +1,3 @@
-
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
@@ -8,10 +7,11 @@ const sendEmail = require("../utils/sendEmail");
 const User = require("../models/User");
 
 // Place order (COD)
+
 exports.placeOrder = async (req, res) => {
   try {
 
-    const { addressId, items } = req.body;
+    const { addressId, items, discount = 0 } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({
@@ -75,7 +75,7 @@ exports.placeOrder = async (req, res) => {
       });
     }
 
-    const discount = 0;
+  
 
     const totalAmount =
       subtotal - discount + deliveryCharge;
@@ -302,6 +302,7 @@ Thank you for shopping with PetRonaq 🐾
 
   }
 };
+
 
 
 

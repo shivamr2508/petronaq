@@ -5,9 +5,13 @@ const Product = require("../models/Product");
 // CREATE REVIEW
 exports.createReview = async (req, res) => {
 
+  console.log("BODY:", req.body);
+console.log("FILE:", req.file);
+
   try {
 
-    const { rating, comment } = req.body;
+      const rating = Number(req.body.rating);
+      const comment = req.body.comment;
 
     const productId = req.params.productId;
 
@@ -48,6 +52,10 @@ exports.createReview = async (req, res) => {
 
     // 3️⃣ Create review
 
+     const imagePath = req.file
+  ? `/uploads/reviews/${req.file.filename}`
+  : "";
+
     const review = await Review.create({
 
       user: userId,
@@ -57,7 +65,7 @@ exports.createReview = async (req, res) => {
       rating,
       comment,
 
-      images: req.body.images || [],
+       images: imagePath ? [imagePath] : [],
 
       isVerifiedPurchase: true
 

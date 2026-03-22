@@ -13,6 +13,8 @@ function ReviewPage() {
   const navigate = useNavigate();
 
   const [rating, setRating] = useState(0);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,19 +39,40 @@ function ReviewPage() {
 
       const token = localStorage.getItem("token");
 
-      await axios.post(
-        `/api/reviews/${productId}`,
-        {
-          rating,
-          comment,
-          orderId
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+     const formData = new FormData();
+
+formData.append("rating", rating);
+formData.append("comment", comment);
+formData.append("orderId", orderId);
+
+if (image) {
+  formData.append("image", image);
+}
+
+await axios.post(
+  `/api/reviews/${productId}`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data"
+    }
+  }
+);
+
+      // await axios.post(
+      //   `/api/reviews/${productId}`,
+      //   {
+      //     rating,
+      //     comment,
+      //     orderId
+      //   },
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`
+      //     }
+      //   }
+      // );
 
       // ✅ success
       updateSuccess("Review submitted successfully", t);
@@ -108,6 +131,35 @@ function ReviewPage() {
           marginBottom: "15px"
         }}
       />
+
+      <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+  const file = e.target.files[0];
+  setImage(file);
+
+  if (file) {
+    setPreview(URL.createObjectURL(file)); // ✅ create preview
+  }
+}}
+/>
+
+{preview && (
+  <div style={{ marginTop: "10px" }}>
+    <img
+      src={preview}
+      alt="Preview"
+      style={{
+        width: "120px",
+        height: "120px",
+        objectFit: "cover",
+        borderRadius: "10px",
+        border: "1px solid #ddd"
+      }}
+    />
+  </div>
+)}
 
       <button
         className="btn btn-primary"

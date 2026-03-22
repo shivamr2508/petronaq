@@ -45,17 +45,15 @@
   color:white;
 }
 
-.status-badge.Pending{
-  background:#2f9e44;
-}
+/* Existing */
+.status-badge.Pending { background: orange; }
+.status-badge.Delivered { background: green; }
+.status-badge.Cancelled { background: red; }
 
-.status-badge.Delivered{
-  background:#3b82f6;
-}
-
-.status-badge.Cancelled{
-  background:#ef4444;
-}
+/* ADD THESE 👇 */
+.status-badge.Confirmed { background: blue; }
+.status-badge.Shipped { background: purple; }
+.status-badge.Out-for-Delivery { background: teal; }
 
 /* ORDER META */
 

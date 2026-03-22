@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { admin } = require("../middleware/authMiddleware");
+const upload = require("../middleware/reviewUpload");
 
 const {
   createReview,
@@ -18,7 +19,12 @@ const { protect } = require("../middleware/authMiddleware");
 
 
 // CREATE REVIEW (needs productId param)
-router.post("/:productId", protect, createReview);
+router.post(
+  "/:productId",
+  protect,
+  upload.single("image"),
+  createReview
+);
 
 // CHECK IF REVIEWED (must be ABOVE :productId route)
 router.get("/check/:productId", protect, checkIfReviewed);

@@ -8,9 +8,9 @@ return(
 
 <h2>Help & Contact Us</h2>
 
-<p>Email: support@petRonaq.com</p>
+<p>Email: team@petronaq.in</p>
 
-<p>Phone: +91 34526772887</p>
+<p>Phone: +91 7891689920 </p>
 
 <p>
 If you have any issues with your order feel free to contact us.

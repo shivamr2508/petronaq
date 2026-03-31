@@ -51,10 +51,21 @@ const checkoutQty = parseInt(params.get("qty")) || 1;
 
   useEffect(() => {
 
+  // const subtotal = cartItems.reduce(
+  //   (sum, item) => sum + item.product.price * item.quantity,
+  //   0
+  // );
+
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
+  (sum, item) => {
+    const price = item.product.discountPrice > 0
+      ? item.product.discountPrice
+      : item.product.price;
+
+    return sum + price * item.quantity;
+  },
+  0
+);
 
   setTotalAmount(subtotal);
 
@@ -67,8 +78,6 @@ useEffect(() => {
   setFinalTotal(total);
 
 }, [totalAmount, discount, deliveryCharge]);
-
-
 
 
 
@@ -612,13 +621,24 @@ if (newQty <= 0) {
 
 const updateTotals = (items) => {
 
+  // const subtotal = items.reduce(
+
+  //   (sum, item) => sum + item.product.price * item.quantity,
+
+  //   0
+
+  // );
+
   const subtotal = items.reduce(
+  (sum, item) => {
+    const price = item.product.discountPrice > 0
+      ? item.product.discountPrice
+      : item.product.price;
 
-    (sum, item) => sum + item.product.price * item.quantity,
-
-    0
-
-  );
+    return sum + price * item.quantity;
+  },
+  0
+);
 
   setTotalAmount(subtotal);
 
@@ -881,7 +901,13 @@ Save Address
 
 <p className="product-name">{item.product.name}</p>
 
-<p className="product-price">₹{item.product.price}</p>
+<p className="product-price">
+  ₹{
+    item.product.discountPrice > 0
+      ? item.product.discountPrice
+      : item.product.price
+  }
+</p>
 
 <div className="qty-control">
 
@@ -901,7 +927,11 @@ disabled={item.quantity >= item.product.stock}
 </div>
 
 <p className="product-subtotal">
-Subtotal: ₹{item.product.price * item.quantity}
+  Subtotal: ₹{
+    (item.product.discountPrice > 0
+      ? item.product.discountPrice
+      : item.product.price) * item.quantity
+  }
 </p>
 
 </div>

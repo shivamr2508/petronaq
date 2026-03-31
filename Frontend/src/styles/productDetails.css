@@ -162,7 +162,39 @@ z-index:2;
 
 }
 
+.small-desc {
+  color: #555;
+  font-size: 14px;
+  margin: 6px 0 10px;
+}
 
+.details-price {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 16px;
+}
+
+.new-price {
+  color: #2e7d32;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.big-description {
+  margin-top: 30px;
+}
+
+.big-description p {
+  line-height: 1.6;
+  color: #444;
+}
 
 /* DESCRIPTION */
 

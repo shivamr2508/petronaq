@@ -64,21 +64,27 @@ exports.placeOrder = async (req, res) => {
       product.stock -= item.quantity;
       await product.save();
 
-      subtotal += product.price * item.quantity;
+      const finalPrice = product.discountPrice > 0
+  ? product.discountPrice
+  : product.price;
+
+     subtotal += finalPrice * item.quantity;
 
       orderItems.push({
         product: product._id,
         name: product.name,
         image: product.images[0] || "",
-        price: product.price,
+        price: finalPrice,
         quantity: item.quantity
       });
     }
 
   
 
-    const totalAmount =
-      subtotal - discount + deliveryCharge;
+   const totalAmount = Math.max(
+  0,
+  subtotal - discount + deliveryCharge
+);
 
     const order = await Order.create({
       user: req.user._id,

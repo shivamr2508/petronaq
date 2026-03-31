@@ -6,6 +6,7 @@ exports.createProduct = async (req, res) => {
     const {
       name,
       description,
+      smallDescription,
       price,
       discountPrice,
        petTypes,
@@ -26,6 +27,7 @@ exports.createProduct = async (req, res) => {
     const product = await Product.create({
       name,
       description,
+       smallDescription,
       price,
       discountPrice,
       petTypes,
@@ -163,6 +165,7 @@ exports.updateProduct = async (req, res) => {
     const {
       name,
       description,
+      smallDescription,
       price,
       discountPrice,
       petTypes,
@@ -170,6 +173,8 @@ exports.updateProduct = async (req, res) => {
       stock,
       images,
     } = req.body;
+
+    if (smallDescription !== undefined) product.smallDescription = smallDescription;
 
     if (stock !== undefined) {
 

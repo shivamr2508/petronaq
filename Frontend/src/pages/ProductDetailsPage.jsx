@@ -162,9 +162,36 @@ const handleBuyNow = () => {
       {/* RIGHT SIDE - DETAILS */}
       <div className="product-info-section">
         <h2>{product.name}</h2>
-         <p>{product.description}</p>
+         
+         {/* ✅ SMALL DESCRIPTION */}
+<p className="small-desc">
+  {product.smallDescription}
+</p>
 
-        <p className="details-price">₹{product.price}</p>
+        {/* ✅ PRICE SECTION */}
+<div className="details-price">
+
+  {product.discountPrice > 0 ? (
+    <>
+      <span className="old-price">
+        ₹{product.price}
+      </span>
+
+      <span className="new-price">
+        ₹{product.discountPrice}
+      </span>
+    </>
+  ) : (
+    <span className="new-price">
+      ₹{product.price}
+    </span>
+  )}
+
+</div>
+
+        {/* <h3 className="details-price">₹{product.price}</h3> */}
+
+
 
         <p
           style={{
@@ -208,6 +235,13 @@ const handleBuyNow = () => {
 >
   Buy Now
 </button>
+
+              {/* ✅ BIG DESCRIPTION */}
+<div className="big-description">
+  <h3>Product Details</h3>
+  <p>{product.description}</p>
+</div>
+
 
              {/* <button
                 className="btn btn-primary"

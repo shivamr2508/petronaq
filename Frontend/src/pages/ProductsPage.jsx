@@ -81,6 +81,7 @@ const category = params.get("category") || "";
         <option value="">All Categories</option>
         <option value="Food">Food</option>
         <option value="Toys">Toys</option>
+        <option value="Treats">Treats</option>
         <option value="Accessories">Accessories</option>
         <option value="Grooming">Grooming</option>
         <option value="Beds">Beds</option>

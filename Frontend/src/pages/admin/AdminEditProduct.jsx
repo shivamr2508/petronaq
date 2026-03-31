@@ -10,6 +10,8 @@ function AdminEditProduct() {
 
   const [name,setName] = useState("");
   const [price,setPrice] = useState("");
+  const [smallDescription, setSmallDescription] = useState("");
+const [discountPrice, setDiscountPrice] = useState("");
   const [stock,setStock] = useState(0);
   const [description,setDescription] = useState("");
 
@@ -34,6 +36,8 @@ function AdminEditProduct() {
 
     setName(product.name);
     setPrice(product.price);
+    setSmallDescription(product.smallDescription || "");
+setDiscountPrice(product.discountPrice || "");
     setStock(product.stock);
     setDescription(product.description);
 
@@ -85,16 +89,18 @@ function AdminEditProduct() {
     }
 
     await axios.put(
-      `/api/products/${id}`,
-      {
-        name,
-        price,
-        stock,
-        description,
-        images:[imageUrl],
-        petTypes,
-        categories
-      },
+  `/api/products/${id}`,
+  {
+    name,
+    smallDescription, // ✅ NEW
+    description,
+    price,
+    discountPrice, // ✅ NEW
+    stock,
+    images: [imageUrl],
+    petTypes,
+    categories
+  },
       {
         headers:{
           Authorization:`Bearer ${token}`
@@ -128,27 +134,76 @@ className="admin-product-form"
 
 <div className="form-section">
 
-<h3>Basic Information</h3>
+<h3>Basic Information : </h3>
 
-<input
+
+<div className="input-group">
+  <label>Product Name</label>
+  <input
+    value={name}
+    placeholder="Enter product name"
+    onChange={(e)=>setName(e.target.value)}
+  />
+</div>
+
+<div className="input-group">
+  <label>MRP Price (Original Price)</label>
+  <input
+    type="number"
+    value={price}
+    placeholder="Enter original price (e.g. 500)"
+    onChange={(e)=>setPrice(e.target.value)}
+  />
+</div>
+
+<div className="input-group">
+  <label>Selling Price (Discount Price)</label>
+  <input
+    type="number"
+    value={discountPrice}
+    placeholder="Enter discounted price (e.g. 399)"
+    onChange={(e)=>setDiscountPrice(e.target.value)}
+  />
+</div>
+
+<div className="input-group">
+  <label>Stock Quantity</label>
+  <input
+    type="number"
+    value={stock}
+    placeholder="Available stock"
+    onChange={(e)=>setStock(Number(e.target.value))}
+  />
+</div>
+
+{/* <input
 value={name}
 placeholder="Product Name"
 onChange={(e)=>setName(e.target.value)}
 />
 
+
 <input
 type="number"
 value={price}
-placeholder="Price"
+placeholder="Original Price (MRP)"
 onChange={(e)=>setPrice(e.target.value)}
 />
+
+<input
+type="number"
+value={discountPrice}
+placeholder="Discount Price (Selling Price)"
+onChange={(e)=>setDiscountPrice(e.target.value)}
+/>
+
 
 <input
 type="number"
 value={stock}
 placeholder="Stock Quantity"
 onChange={(e)=>setStock(Number(e.target.value))}
-/>
+/> */}
 
 </div>
 
@@ -231,6 +286,15 @@ Toys
 <label>
 <input
 type="checkbox"
+checked={categories.includes("Treats")}
+onChange={()=>handleCheckbox("Treats",categories,setCategories)}
+/>
+Treats
+</label>
+
+<label>
+<input
+type="checkbox"
 checked={categories.includes("Accessories")}
 onChange={()=>handleCheckbox("Accessories",categories,setCategories)}
 />
@@ -273,7 +337,15 @@ Health
 
 <div className="form-section">
 
-<h3>Description</h3>
+  <h3>Short Description</h3>
+
+<textarea
+value={smallDescription}
+placeholder="Small description (for cards)"
+onChange={(e)=>setSmallDescription(e.target.value)}
+/>
+
+<h3>Detailed Description</h3>
 
 <textarea
 value={description}

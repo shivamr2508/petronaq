@@ -153,38 +153,54 @@ function ProductCard({ product, onWishlist }) {
     </div>
 
     {/* CONTENT */}
+    
     <div className="product-content">
 
-      <h3 className="product-name">
-        {product.name}
-      </h3>
+  {/* NAME */}
+  <h3 className="product-name">
+    {product.name}
+     {/* {product.name.split(" ").slice(0, 2).join(" ")} */}
+  </h3>
 
-      <div className="product-rating">
-        {product.numReviews > 0 && (
-          <>
-            {"★".repeat(Math.round(product.ratings))}
-            {"☆".repeat(5 - Math.round(product.ratings))}
+  {/* SMALL DESCRIPTION */}
+  <p className="product-small-desc">
+    {product.smallDescription}
+  </p>
 
-            <span className="review-count">
-              {product.ratings.toFixed(1)} ({product.numReviews})
-            </span>
-          </>
-        )}
-      </div>
+  {/* RATING */}
+    {product.numReviews > 0 && (
+  <div className="product-rating">
+    {"★".repeat(Math.round(product.ratings))}
+    {"☆".repeat(5 - Math.round(product.ratings))}
 
-      <div className="product-bottom">
+    <span className="review-count">
+      {product.ratings.toFixed(1)} ({product.numReviews})
+    </span>
+  </div>
+)}
 
-        <span className="product-price">
-          ₹{product.price}
-        </span>
+  {/* PRICE */}
+  <div className="price-row">
 
-        <span className="product-view">
-          View →
-        </span>
+  {product.discountPrice > 0 ? (
+    <>
+      <span className="old-price">
+        ₹{product.price}
+      </span>
 
-      </div>
+      <span className="new-price">
+        ₹{product.discountPrice}
+      </span>
+    </>
+  ) : (
+    <span className="new-price">
+      ₹{product.price}
+    </span>
+  )}
 
-    </div>
+</div>
+
+</div>
 
   </Link>
 

@@ -5,6 +5,8 @@ import "../../styles/adminAddProduct.css";
 function AdminAddProduct() {
 
   const [name,setName] = useState("");
+  const [smallDescription, setSmallDescription] = useState("");
+const [discountPrice, setDiscountPrice] = useState("");
   const [price,setPrice] = useState("");
   const [stock,setStock] = useState(0);
   const [description,setDescription] = useState("");
@@ -68,16 +70,18 @@ function AdminAddProduct() {
       }
 
       await axios.post(
-        "/api/products",
-        {
-          name,
-          price:Number(price),
-          stock:Number(stock),
-          description,
-          images:uploadedUrls,
-          petTypes,
-          categories
-        },
+  "/api/products",
+  {
+    name,
+    smallDescription, // ✅ NEW
+    description,
+    price: Number(price),
+    discountPrice: Number(discountPrice), // ✅ NEW
+    stock: Number(stock),
+    images: uploadedUrls,
+    petTypes,
+    categories
+  },
         {
           headers:{
             Authorization:`Bearer ${token}`
@@ -127,11 +131,24 @@ onChange={(e)=>setName(e.target.value)}
 required
 />
 
-<input
+{/* <input
 type="number"
 placeholder="Price"
 onChange={(e)=>setPrice(e.target.value)}
 required
+/> */}
+
+<input
+  type="number"
+  placeholder="Original Price (MRP)"
+  onChange={(e)=>setPrice(e.target.value)}
+  required
+/>
+
+<input
+  type="number"
+  placeholder="Discount Price (Selling Price)"
+  onChange={(e)=>setDiscountPrice(e.target.value)}
 />
 
 <input
@@ -199,6 +216,10 @@ Bird
 
 <label><input type="checkbox" onChange={()=>handleCheckbox("Food",categories,setCategories)}/>Food</label>
 <label><input type="checkbox" onChange={()=>handleCheckbox("Toys",categories,setCategories)}/>Toys</label>
+<label>
+<input type="checkbox" onChange={()=>handleCheckbox("Treats",categories,setCategories)}/>
+Treats
+</label>
 <label><input type="checkbox" onChange={()=>handleCheckbox("Accessories",categories,setCategories)}/>Accessories</label>
 <label><input type="checkbox" onChange={()=>handleCheckbox("Grooming",categories,setCategories)}/>Grooming</label>
 <label><input type="checkbox" onChange={()=>handleCheckbox("Beds",categories,setCategories)}/>Beds</label>
@@ -213,7 +234,15 @@ Bird
 
 <div className="form-section">
 
-<h3>Description</h3>
+  <h3>Short Description</h3>
+
+<textarea
+  placeholder="Small description (shown on cards)"
+  onChange={(e)=>setSmallDescription(e.target.value)}
+  required
+/>
+
+<h3>Detailed Description</h3>
 
 <textarea
 placeholder="Product Description"

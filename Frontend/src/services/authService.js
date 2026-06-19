@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "/api/auth";
+const API_URL =
+  "https://petronaq-production.up.railway.app/api/auth";
 
 export const loginUser = async (email, password) => {
 

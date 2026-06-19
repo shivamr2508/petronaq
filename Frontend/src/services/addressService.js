@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "/api/address";
+const API_URL =
+"https://petronaq-production.up.railway.app/api/address";
 
 export const getAddresses = async () => {
 

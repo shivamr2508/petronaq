@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminEdit.css";
 
 function AdminEditProduct() {
@@ -29,7 +30,7 @@ const [discountPrice, setDiscountPrice] = useState("");
   const fetchProduct = async()=>{
 
     const res = await axios.get(
-      `/api/products/${id}`
+      `${API_BASE}/api/products/${id}`
     );
 
     const product = res.data;
@@ -75,7 +76,7 @@ setDiscountPrice(product.discountPrice || "");
       formData.append("image",image);
 
       const uploadRes = await axios.post(
-        "/api/upload",
+        `${API_BASE}/api/upload`,
         formData,
         {
           headers:{
@@ -89,7 +90,7 @@ setDiscountPrice(product.discountPrice || "");
     }
 
     await axios.put(
-  `/api/products/${id}`,
+  `${API_BASE}/api/products/${id}`,
   {
     name,
     smallDescription, // ✅ NEW

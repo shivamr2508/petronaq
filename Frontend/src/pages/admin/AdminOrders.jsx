@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminOrder.css";
 
 function AdminOrders() {
@@ -15,12 +16,12 @@ const fetchOrders = async()=>{
 
 const token = localStorage.getItem("token");
 
-const res = await axios.get(
-"/api/orders",
-{
-headers:{ Authorization:`Bearer ${token}` }
-}
-);
+	const res = await axios.get(
+		`${API_BASE}/api/orders`,
+		{
+			headers:{ Authorization:`Bearer ${token}` }
+		}
+	);
 
 const validOrders = res.data.filter(
 order => order.address !== null
@@ -35,8 +36,8 @@ const updateStatus = async(id,status)=>{
 
 const token = localStorage.getItem("token");
 
-await axios.put(
-`/api/orders/${id}/status`,
+	await axios.put(
+		`${API_BASE}/api/orders/${id}/status`,
 { status },
 {
 headers:{ Authorization:`Bearer ${token}` }

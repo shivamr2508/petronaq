@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE } from "../config/api";
 
-const API_URL = "/api/cart";
+const API_URL = `${API_BASE}/api/cart`;
 
 export const addToCart = async (productId, quantity = 1) => {
 
@@ -28,7 +29,7 @@ export const getCart = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "/api/cart",
+    API_URL,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -44,7 +45,7 @@ export const removeFromCart = async (productId) => {
   const token = localStorage.getItem("token");
 
   await axios.delete(
-    `/api/cart/remove/${productId}`,
+    `${API_URL}/remove/${productId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -60,7 +61,7 @@ export const updateCartItem = async (productId, quantity) => {
 
   const res = await axios.put(
 
-    "/api/cart/update",
+    `${API_URL}/update`,
 
     {
       productId,

@@ -1,7 +1,7 @@
 import axios from "axios";
+import { API_BASE } from "../config/api";
 
-const API_URL =
-  "https://petronaq-production.up.railway.app/api/auth";
+const API_URL = `${API_BASE}/api/auth`;
 
 export const loginUser = async (email, password) => {
 
@@ -42,7 +42,7 @@ export const getProfile = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "/api/auth/profile",
+    `${API_URL}/profile`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -130,7 +130,7 @@ function ProductCard({ product, onWishlist }) {
   return (
 
       <Link
-    to={`/product/${product._id}`}
+    to={`/products/${product._id}`}
     className="product-card"
   >
 

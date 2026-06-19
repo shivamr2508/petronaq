@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminCoupons.css";
 
 function AdminCoupons() {
@@ -17,7 +18,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "/api/coupons",
+      `${API_BASE}/api/coupons`,
       {
         headers:{
           Authorization:`Bearer ${token}`
@@ -36,7 +37,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     await axios.post(
-      "/api/coupons",
+      `${API_BASE}/api/coupons`,
       { code, discount },
       {
         headers:{
@@ -57,7 +58,7 @@ function AdminCoupons() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `/api/coupons/${id}`,
+      `${API_BASE}/api/coupons/${id}`,
       {
         headers:{
           Authorization:`Bearer ${token}`

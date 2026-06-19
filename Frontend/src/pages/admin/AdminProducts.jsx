@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminProduct.css";
 
 function AdminProducts() {
@@ -13,7 +14,7 @@ function AdminProducts() {
   const fetchProducts = async()=>{
 
     const res = await axios.get(
-      "/api/products"
+      `${API_BASE}/api/products`
     );
 
     setProducts(res.data);
@@ -25,7 +26,7 @@ function AdminProducts() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `/api/products/${id}`,
+      `${API_BASE}/api/products/${id}`,
       {
         headers:{
           Authorization:`Bearer ${token}`

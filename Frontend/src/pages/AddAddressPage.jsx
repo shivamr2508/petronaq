@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../config/api";
 import { useNavigate } from "react-router-dom";
 import "../styles/checkout.css";
 
@@ -38,7 +39,7 @@ function AddAddressPage() {
     console.log("Sending address:", addressData);
 
     await axios.post(
-      "/api/address",
+      `${API_BASE}/api/address`,
       addressData,
       {
         headers: {

@@ -163,6 +163,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 
 import {
   AreaChart,
@@ -203,11 +204,11 @@ function AdminDashboard() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "/api/admin/analytics",
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+        `${API_BASE}/api/admin/analytics`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
     setAnalytics(res.data);
   };

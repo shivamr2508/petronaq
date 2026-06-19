@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../config/api";
 
 function ReviewButton({ productId, orderId, navigate }) {
 
@@ -14,7 +15,7 @@ function ReviewButton({ productId, orderId, navigate }) {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `/api/reviews/check/${productId}`,
+          `${API_BASE}/api/reviews/check/${productId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`

@@ -57,6 +57,7 @@ import { useState } from "react";
 import { registerUser } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { API_BASE } from "../config/api";
 import "../styles/auth.css";
 
 // ✅ toast helpers
@@ -111,8 +112,8 @@ const t = showLoading("Signing up with Google...");
 try{
 
 const res = await axios.post(
-"/api/auth/google-login",
-{ token: credentialResponse.credential }
+  `${API_BASE}/api/auth/google-login`,
+  { token: credentialResponse.credential }
 );
 
 localStorage.setItem("token",res.data.token);

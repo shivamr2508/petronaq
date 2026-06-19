@@ -11,6 +11,8 @@ import { FaHeart } from "react-icons/fa";
 
 import { showSuccess, showError } from "../utils/toast";
 
+import { API_BASE } from "../config/api";
+  
 function ProductDetailsPage() {
   const { id } = useParams();
 
@@ -92,18 +94,17 @@ const handleBuyNow = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       const response = await axios.get(
-        `/api/products/${id}`,
-      );
-
+  `${API_BASE}/api/products/${id}`
+);
       setProduct(response.data);
       setSelectedImage(response.data.images?.[0]);
     };
 
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(
-          `/api/reviews/${id}`,
-        );
+       const response = await axios.get(
+  `${API_BASE}/api/reviews/${id}`
+);
         setReviews(response.data);
       } catch (error) {
         console.error("Review fetch error:", error);
@@ -289,9 +290,9 @@ const handleBuyNow = () => {
 
           <p>{review.comment}</p>
           {review.images && review.images.length > 0 && (
-  <div style={{ marginTop: "10px" }}>
+    <div style={{ marginTop: "10px" }}>
     <img
-      src={`http://localhost:5000${review.images[0]}`}
+      src={`${API_BASE}${review.images[0]}`}
       alt="review"
       style={{
         width: "120px",
@@ -359,7 +360,7 @@ const handleBuyNow = () => {
       {review.images && review.images.length > 0 && (
         <div style={{ marginTop: "10px" }}>
           <img
-            src={`http://localhost:5000${review.images[0]}`}
+            src={`${API_BASE}${review.images[0]}`}
             alt="review"
             style={{
               width: "120px",

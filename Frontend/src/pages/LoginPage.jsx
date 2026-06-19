@@ -2,6 +2,7 @@ import { useState } from "react";
 import { loginUser } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { API_BASE } from "../config/api";
 import "../styles/auth.css";
 
 import { showSuccess, showError, showLoading, updateSuccess, updateError } from "../utils/toast";
@@ -31,7 +32,7 @@ function LoginPage() {
     try{
 
       const res = await axios.post(
-        "/api/auth/google-login",
+        `${API_BASE}/api/auth/google-login`,
         { token: credentialResponse.credential }
       );
 

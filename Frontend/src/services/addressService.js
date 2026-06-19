@@ -1,7 +1,7 @@
 import axios from "axios";
+import { API_BASE } from "../config/api";
 
-const API_URL =
-"https://petronaq-production.up.railway.app/api/address";
+const API_URL = `${API_BASE}/api/address`;
 
 export const getAddresses = async () => {
 

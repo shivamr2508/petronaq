@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminAddProduct.css";
 
 function AdminAddProduct() {
@@ -56,7 +57,7 @@ const [discountPrice, setDiscountPrice] = useState("");
         formData.append("image",img);
 
         const uploadRes = await axios.post(
-          "/api/upload",
+          `${API_BASE}/api/upload`,
           formData,
           {
             headers:{
@@ -69,8 +70,8 @@ const [discountPrice, setDiscountPrice] = useState("");
 
       }
 
-      await axios.post(
-  "/api/products",
+        await axios.post(
+      `${API_BASE}/api/products`,
   {
     name,
     smallDescription, // ✅ NEW

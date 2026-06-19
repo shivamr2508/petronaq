@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from "../../config/api";
 import "../../styles/adminReviews.css";
 
 function AdminReviewsPage() {
@@ -12,7 +13,7 @@ function AdminReviewsPage() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "/api/reviews/admin/all",
+        `${API_BASE}/api/reviews/admin/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -36,7 +37,7 @@ function AdminReviewsPage() {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `/api/reviews/${id}`,
+      `${API_BASE}/api/reviews/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -52,7 +53,7 @@ function AdminReviewsPage() {
     const token = localStorage.getItem("token");
 
     await axios.put(
-      `/api/reviews/reply/${id}`,
+      `${API_BASE}/api/reviews/reply/${id}`,
       { reply },
       {
         headers: {

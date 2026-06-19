@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE } from "../config/api";
 
-const BASE_URL = "/api/reviews";
+const BASE_URL = `${API_BASE}/api/reviews`;
 
 export const getReviews = async (productId) => {
 

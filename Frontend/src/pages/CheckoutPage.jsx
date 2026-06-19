@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_BASE } from "../config/api";
 import { useEffect, useState } from "react";
 import { getAddresses, addAddress, updateAddress, deleteAddress } from "../services/addressService";
 import { placeOrder } from "../services/orderService";
@@ -109,7 +110,7 @@ const fetchCartItems = async () => {
     // Buy Now flow → fetch product directly
 
     const res = await axios.get(
-      `/api/products/${checkoutProductId}`
+      `${API_BASE}/api/products/${checkoutProductId}`
     );
 
     const product = res.data;
@@ -187,7 +188,7 @@ const applyCoupon = async () => {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "/api/coupons",
+      `${API_BASE}/api/coupons`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

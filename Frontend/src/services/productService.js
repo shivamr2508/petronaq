@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "/api/products";
+const API_URL = "https://petronaq-production.up.railway.app/api/products";
 
 
 

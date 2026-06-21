@@ -340,6 +340,12 @@ export default function ProductDetailsPage() {
                 style={{ transformOrigin: `${zoomOrigin.x} ${zoomOrigin.y}` }}
               />
 
+              {hasDiscount && (
+  <div className="discount-badge image-badge">
+    {discountPercent}% OFF
+  </div>
+)}
+
               <button className="wishlist-btn" onClick={handleAddToWishlist} aria-label="Add to wishlist">
                 <span className="heart" aria-hidden>❤</span>
               </button>
@@ -377,11 +383,7 @@ export default function ProductDetailsPage() {
             <div className="price-row">
               <div className="price-main">
                 <div className="current-price">₹{hasDiscount ? product.discountPrice : product.price}</div>
-                {hasDiscount && <div className="old-price">₹{product.price}</div>}
               </div>
-              {hasDiscount && (
-                <div className="discount-badge">{discountPercent}% OFF</div>
-              )}
             </div>
 
             <div className="stock-row">

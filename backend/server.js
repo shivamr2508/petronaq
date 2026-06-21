@@ -20,6 +20,7 @@ const { protect } = require("./middleware/authMiddleware");
 const sitemapRoutes = require("./routes/sitemapRoutes");
 
 const productRoutes = require("./routes/productRoutes");
+const googleFeedRoutes = require("./routes/googleFeedRoutes");
 
 
 
@@ -28,6 +29,8 @@ const productRoutes = require("./routes/productRoutes");
 connectDB();
 
 const app = express();
+
+app.use("/", googleFeedRoutes);
 
 app.use(cors());
 app.use(express.json());

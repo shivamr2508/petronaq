@@ -6,6 +6,7 @@ import { addToCart } from "../services/cartService";
 import { addToWishlist } from "../services/wishlistService";
 import { showSuccess, showError } from "../utils/toast";
 import { API_BASE } from "../config/api";
+import { Helmet } from "react-helmet-async";
 
 function Star({ filled }) {
   return (
@@ -74,6 +75,7 @@ export default function ProductDetailsPage() {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`${API_BASE}/api/products/${id}`);
+        console.log("PRODUCT DATA:", response.data);
         setProduct(response.data);
         setSelectedIndex(0);
         await fetchRelatedProducts(response.data);
@@ -95,14 +97,14 @@ export default function ProductDetailsPage() {
       setRelatedLoading(true);
       try {
         const currentProductId = String(currentProduct._id).trim();
-        const currentProductCategory = String(currentProduct.category || "").trim();
+        const currentProductCategory =
+  currentProduct.categories?.[0] || "";
         
         console.log("=== RELATED PRODUCTS FETCH DEBUG ===");
         console.log("Current Product ID:", currentProductId);
         console.log("Current Product Name:", currentProduct.name);
         console.log("Current Product Category:", currentProductCategory);
-        console.log("Category Type:", typeof currentProduct.category);
-        console.log("Full Category Value:", currentProduct.category);
+        console.log("Categories:", currentProduct.categories);
         
         let relatedProductsList = [];
 
@@ -257,6 +259,15 @@ export default function ProductDetailsPage() {
   const saveAmount = hasDiscount ? product.price - product.discountPrice : 0;
 
   return (
+  <>
+    <Helmet>
+  <title>
+  {product?.name
+    ? `${product.name} | PetRonaq`
+    : "PetRonaq"}
+</title>
+</Helmet>
+
     <main className="pd-page">
       <div className="product-details-wrapper">
         <section className="product-left">
@@ -483,12 +494,13 @@ export default function ProductDetailsPage() {
           <button className="btn small" onClick={handleAddToCart}>Add</button>
           <button className="btn buy-now small" onClick={handleBuyNow}>Buy</button>
         </div>
-      </div>
+           </div>
     </main>
-  );
+  </>
+);
 }
   
-
+  
   
 
 

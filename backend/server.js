@@ -17,6 +17,10 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const { protect } = require("./middleware/authMiddleware");
 
+const sitemapRoutes = require("./routes/sitemapRoutes");
+
+const productRoutes = require("./routes/productRoutes");
+
 
 
 
@@ -32,7 +36,7 @@ const authRoutes = require("./routes/authRoutes");
 
 app.use("/api/auth", authRoutes);
 
-const productRoutes = require("./routes/productRoutes");
+app.use("/", sitemapRoutes);
 
 app.use("/api/products", productRoutes);
 

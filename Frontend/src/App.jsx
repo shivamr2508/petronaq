@@ -24,6 +24,8 @@ import AccountPage from "./pages/AccountPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import ContactPage from "./pages/ContactPage";
+import ShippingPolicyPage from "./pages/ShippingPolicyPage";
+import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 
 
 function App() {
@@ -73,6 +75,8 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
+        <Route path="/return-policy" element={<ReturnPolicyPage />} />
       </Routes>
     </MainLayout>
   );

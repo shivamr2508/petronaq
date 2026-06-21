@@ -24,4 +24,25 @@
   text-align: center;
   padding: 30px 20px;
  }
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.footer-links a {
+  color: #ff7a00;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #ffb400;
+  text-decoration: underline;
+}
+
 }

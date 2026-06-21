@@ -1,13 +1,49 @@
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL CSS VARIABLES - NAVBAR HEIGHT FIX
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Navbar heights for responsive design */
+  /* --navbar-height-mobile: 45px; */
+  --navbar-height-desktop: 60px;
+  
+  /* Applied height (changes based on breakpoint) */
+  --navbar-height: var(--navbar-height-mobile);
+}
+
+/* Desktop breakpoint: update navbar height variable */
+@media (min-width: 1024px) {
+  :root {
+    --navbar-height: var(--navbar-height-desktop);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
 html, body {
   height: auto;
   overflow-x: hidden;
   overflow-y: auto;
+  margin: 0;
+  padding: 0;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN CONTENT FIX: Add top padding to main element
+   This ensures ALL pages start below the navbar automatically
+   ═══════════════════════════════════════════════════════════════════ */
+
+main {
+  padding-top: var(--navbar-height);
+  min-height: 100vh;
 }
 
 img {

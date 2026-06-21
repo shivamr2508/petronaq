@@ -282,14 +282,6 @@ background:var(--primary-dark);
   display:none;
 }
 
-body{
-  padding-top:80px;   /* adjust to your navbar height */
-}
-
-/* .home{
-  margin-top:50px;   
-} */
-
 .navbar{
 
   position:static;

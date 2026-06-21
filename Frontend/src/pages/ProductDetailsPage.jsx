@@ -262,10 +262,64 @@ export default function ProductDetailsPage() {
   <>
     <Helmet>
   <title>
-  {product?.name
-    ? `${product.name} | PetRonaq`
-    : "PetRonaq"}
-</title>
+    {product?.name
+      ? `${product.name} | PetRonaq`
+      : "PetRonaq"}
+  </title>
+
+  <meta
+    name="description"
+    content={
+      product?.smallDescription ||
+      product?.description ||
+      "Buy premium pet products online from PetRonaq"
+    }
+  />
+
+  <meta
+    property="og:title"
+    content={product?.name}
+  />
+
+  <meta
+    property="og:description"
+    content={
+      product?.smallDescription ||
+      product?.description
+    }
+  />
+
+  <meta
+    property="og:image"
+    content={product?.images?.[0]}
+  />
+
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product?.name,
+      image: product?.images?.[0],
+      description:
+        product?.smallDescription ||
+        product?.description,
+      brand: {
+        "@type": "Brand",
+        name: "PetRonaq",
+      },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price:
+          product?.discountPrice ||
+          product?.price,
+        availability:
+          product?.stock > 0
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+      },
+    })}
+  </script>
 </Helmet>
 
     <main className="pd-page">

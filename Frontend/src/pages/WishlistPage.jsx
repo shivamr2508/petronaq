@@ -12,8 +12,20 @@ function WishlistPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchWishlist();
-  }, []);
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showError("Please login first");
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 1000);
+
+    return;
+  }
+
+  fetchWishlist();
+}, [navigate]);
 
   const fetchWishlist = async () => {
 
@@ -46,6 +58,22 @@ function WishlistPage() {
     }
 
   };
+
+  if (!localStorage.getItem("token")) {
+  return (
+    <div className="wishlist-container">
+      <h2>🔒 Login Required</h2>
+      <p>Please login first to view your wishlist.</p>
+
+      <button
+        className="remove-btn"
+        onClick={() => navigate("/login")}
+      >
+        Login
+      </button>
+    </div>
+  );
+}
 
  if (!wishlist){
   return (

@@ -1,395 +1,494 @@
-import { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/productDetails.css";
 import { addToCart } from "../services/cartService";
 import { addToWishlist } from "../services/wishlistService";
-import { getReviews, addReview } from "../services/reviewService";
-import { FaStar } from "react-icons/fa";
-import { FaHeart } from "react-icons/fa";
-
 import { showSuccess, showError } from "../utils/toast";
-
 import { API_BASE } from "../config/api";
-  
-function ProductDetailsPage() {
-  const { id } = useParams();
 
+function Star({ filled }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill={filled ? "#ffb400" : "#e6e6e6"}
+      aria-hidden="true"
+    >
+      <path d="M12 .587l3.668 7.431L23.6 9.75l-5.4 5.268L19.335 24 12 19.897 4.665 24l1.135-8.982L.4 9.75l7.932-1.732z" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ProductCard({ item, onClick }) {
+  return (
+    <article 
+      className="mini-card" 
+      aria-label={item.name}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
+      role="button"
+      tabIndex="0"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.();
+        }
+      }}
+    >
+      <img src={item.images?.[0] || item.image || "/placeholder.png"} alt={item.name} />
+      <div className="mini-card-body">
+        <h4>{item.name}</h4>
+        <div className="mini-price">₹{item.discountPrice || item.price}</div>
+      </div>
+    </article>
+  );
+}
+
+export default function ProductDetailsPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
-
   const [quantity, setQuantity] = useState(1);
-
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: "50%", y: "50%" });
+  const imageWrapRef = useRef(null);
 
   const [reviews, setReviews] = useState([]);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-
-  // const handleAddToWishlist = async () => {
-  //   await addToWishlist(product._id);
-
-  //   alert("Added to wishlist");
-  // };
-
-  const handleAddToWishlist = async () => {
-  try{
-    await addToWishlist(product._id);
-    showSuccess("Added to wishlist ❤️");
-  }catch{
-    showError("Please login first");
-  }
-};
-
- const handleAddToCart = async () => {
-
-  if (product.stock === 0) {
-    showError("Product is out of stock");
-    return;
-  }
-
-  if (quantity > product.stock) {
-    showError(`Only ${product.stock} available in stock`);
-    return;
-  }
-
-  try {
-    await addToCart(product._id, quantity);
-
-    showSuccess("Added to cart 🛒");
-
-  } catch (error) {
-    showError("Please login first");
-  }
-};
-
- 
-const handleBuyNow = () => {
-
-  if (product.stock === 0) {
-    showError("Product is out of stock");
-    return;
-  }
-
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-
-    showError("Please login first"); // ❌ was success before
-
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
-
-    return;
-  }
-
-  navigate(`/checkout?productId=${product._id}&qty=${quantity}`);
-
-};
-
+  const [accordionOpen, setAccordionOpen] = useState({ details: true, ingredients: false, shipping: false });
+  
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const response = await axios.get(
-  `${API_BASE}/api/products/${id}`
-);
-      setProduct(response.data);
-      setSelectedImage(response.data.images?.[0]);
+      try {
+        const response = await axios.get(`${API_BASE}/api/products/${id}`);
+        setProduct(response.data);
+        setSelectedIndex(0);
+        await fetchRelatedProducts(response.data);
+      } catch (err) {
+        console.error(err);
+      }
     };
 
     const fetchReviews = async () => {
       try {
-       const response = await axios.get(
-  `${API_BASE}/api/reviews/${id}`
-);
-        setReviews(response.data);
-      } catch (error) {
-        console.error("Review fetch error:", error);
+        const res = await axios.get(`${API_BASE}/api/reviews/${id}`);
+        setReviews(res.data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchRelatedProducts = async (currentProduct) => {
+      setRelatedLoading(true);
+      try {
+        const currentProductId = String(currentProduct._id).trim();
+        const currentProductCategory = String(currentProduct.category || "").trim();
+        
+        console.log("=== RELATED PRODUCTS FETCH DEBUG ===");
+        console.log("Current Product ID:", currentProductId);
+        console.log("Current Product Name:", currentProduct.name);
+        console.log("Current Product Category:", currentProductCategory);
+        console.log("Category Type:", typeof currentProduct.category);
+        console.log("Full Category Value:", currentProduct.category);
+        
+        let relatedProductsList = [];
+
+        // Step 1: Try to fetch products from same category
+        if (currentProductCategory && currentProductCategory !== "") {
+          try {
+            console.log(`Fetching products with category=${currentProductCategory}`);
+            const categoryRes = await axios.get(
+              `${API_BASE}/api/products?category=${encodeURIComponent(currentProductCategory)}&limit=20`
+            );
+            
+            console.log("Category API Response:", categoryRes.data);
+            
+            const categoryProducts = Array.isArray(categoryRes.data.products) 
+              ? categoryRes.data.products 
+              : Array.isArray(categoryRes.data)
+              ? categoryRes.data
+              : [];
+
+            console.log(`Received ${categoryProducts.length} products from category`);
+            
+            // Log each product's category for verification
+            categoryProducts.forEach((p, idx) => {
+              console.log(`Product ${idx}: ${p.name} (Category: ${p.category})`);
+            });
+
+            // Filter: exclude current product and take first 4
+            relatedProductsList = categoryProducts
+              .filter(p => {
+                const pId = String(p._id).trim();
+                const isNotCurrent = pId !== currentProductId;
+                console.log(`Checking ${p.name}: ID=${pId}, IsCurrent=${!isNotCurrent}`);
+                return isNotCurrent;
+              })
+              .slice(0, 4);
+
+            console.log(`After filtering, got ${relatedProductsList.length} related products from category`);
+          } catch (categoryErr) {
+            console.warn("Category fetch failed:", categoryErr);
+          }
+        } else {
+          console.warn("Current product has no category or category is empty");
+        }
+
+        // Step 2: If fewer than 4 products from category, fetch all products to fill slots
+        if (relatedProductsList.length < 4) {
+          try {
+            console.log(`Need ${4 - relatedProductsList.length} more products, fetching all...`);
+            const allRes = await axios.get(`${API_BASE}/api/products?limit=30`);
+            
+            const allProducts = Array.isArray(allRes.data.products)
+              ? allRes.data.products
+              : Array.isArray(allRes.data)
+              ? allRes.data
+              : [];
+
+            console.log(`Received ${allProducts.length} total products`);
+
+            // Get product IDs already in relatedProductsList to avoid duplicates
+            const existingIds = new Set(relatedProductsList.map(p => String(p._id).trim()));
+            existingIds.add(currentProductId);
+
+            console.log(`Existing IDs (excluding current): ${existingIds.size} products`);
+
+            // Add products until we have 4
+            const remainingSlots = 4 - relatedProductsList.length;
+            const fillProducts = allProducts
+              .filter(p => {
+                const pId = String(p._id).trim();
+                const isNotUsed = !existingIds.has(pId);
+                return isNotUsed;
+              })
+              .slice(0, remainingSlots);
+
+            console.log(`Filled ${fillProducts.length} additional products`);
+
+            relatedProductsList = [...relatedProductsList, ...fillProducts];
+          } catch (allErr) {
+            console.warn("Fallback products fetch failed:", allErr);
+          }
+        }
+
+        // Step 3: Final validation and set results
+        const finalList = relatedProductsList.slice(0, 4);
+        console.log(`Final related products list (${finalList.length} items):`);
+        finalList.forEach((p, idx) => {
+          console.log(`${idx + 1}. ${p.name} (Category: ${p.category})`);
+        });
+        console.log("====================================");
+        
+        setRelatedProducts(finalList);
+      } catch (err) {
+        console.error("Error fetching related products:", err);
+        setRelatedProducts([]);
+      } finally {
+        setRelatedLoading(false);
       }
     };
 
     fetchProduct();
     fetchReviews();
+    window.scrollTo(0, 0);
   }, [id]);
 
-  if (!product) return <p>Loading...</p>;
+  const images = (product?.images && product.images.length) ? product.images : [product?.image || "/placeholder.png"];
+
+  const handleImageMove = (e) => {
+    if (!imageWrapRef.current) return;
+    const rect = imageWrapRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomOrigin({ x: `${x}%`, y: `${y}%` });
+  };
+
+  const handleAddToWishlist = async () => {
+    try {
+      await addToWishlist(product._id);
+      showSuccess("Added to wishlist ❤️");
+    } catch (err) {
+      showError("Please login first");
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    if (product.stock === 0) return showError("Product is out of stock");
+    if (quantity > product.stock) return showError(`Only ${product.stock} available in stock`);
+    try {
+      await addToCart(product._id, quantity);
+      showSuccess("Added to cart 🛒");
+    } catch (err) {
+      showError("Please login first");
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    if (product.stock === 0) return showError("Product is out of stock");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showError("Please login first");
+      setTimeout(() => navigate("/login"), 900);
+      return;
+    }
+    navigate(`/checkout?productId=${product._id}&qty=${quantity}`);
+  };
+
+  if (!product) return <div className="loading">Loading...</div>;
+
+  const hasDiscount = product.discountPrice && product.discountPrice < product.price;
+  const discountPercent = hasDiscount ? Math.round(((product.price - product.discountPrice) / product.price) * 100) : 0;
+  const saveAmount = hasDiscount ? product.price - product.discountPrice : 0;
 
   return (
-    
-
-    <div className="product-details">
-      {/* LEFT SIDE - GALLERY */}
-
+    <main className="pd-page">
       <div className="product-details-wrapper">
+        <section className="product-left">
+          <div className="product-gallery glass">
+            <div
+              className="main-image-container"
+              ref={imageWrapRef}
+              onMouseMove={handleImageMove}
+              onMouseEnter={() => setIsZoomed(true)}
+              onMouseLeave={() => { setIsZoomed(false); setZoomOrigin({ x: "50%", y: "50%" }); }}
+            >
+              <img
+                src={images[selectedIndex]}
+                alt={product.name}
+                className={`main-image ${isZoomed ? "zoomed" : ""}`}
+                style={{ transformOrigin: `${zoomOrigin.x} ${zoomOrigin.y}` }}
+              />
 
-     <div className="product-left">
+              <button className="wishlist-btn" onClick={handleAddToWishlist} aria-label="Add to wishlist">
+                <span className="heart" aria-hidden>❤</span>
+              </button>
+            </div>
 
-     <div className="product-gallery"> 
+            <div className="thumbnail-row" role="list">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  className={`thumbnail ${selectedIndex === i ? "active" : ""}`}
+                  onClick={() => setSelectedIndex(i)}
+                  aria-label={`View image ${i + 1}`}
+                >
+                  <img src={img} alt={`${product.name} ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
-     <div className="thumbnail-row">
-    {product.images.map((img, index) => (
-      <img
-        key={index}
-        src={img}
-        alt=""
-        className={`thumbnail ${selectedImage === img ? "active-thumb" : ""}`}
-        onClick={() => setSelectedImage(img)}
-      />
-    ))}
-  </div>
+        <aside className="product-right">
+          <div className="product-info glass">
+            <h1 className="product-title">{product.name}</h1>
+            <p className="product-subtitle">{product.smallDescription}</p>
 
-  <div className="main-image-container">
-    <img
-      src={selectedImage}
-      alt={product.name}
-      className="main-image"
-    />
+            <div className="rating-row">
+              <div className="stars" aria-hidden>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} filled={i < Math.round(product.avgRating || 0)} />
+                ))}
+              </div>
+              <a href="#reviews" className="review-count">{reviews.length} reviews</a>
+            </div>
 
-      <button
-    className="wishlist-icon"
-    onClick={handleAddToWishlist}
-  >
-    <FaHeart />
-  </button>
-  </div>
+            <div className="price-row">
+              <div className="price-main">
+                <div className="current-price">₹{hasDiscount ? product.discountPrice : product.price}</div>
+                {hasDiscount && <div className="old-price">₹{product.price}</div>}
+              </div>
+              {hasDiscount && (
+                <div className="discount-badge">{discountPercent}% OFF</div>
+              )}
+            </div>
 
- </div>
-
-</div>
-
-      {/* RIGHT SIDE - DETAILS */}
-      <div className="product-info-section">
-        <h2>{product.name}</h2>
-         
-         {/* ✅ SMALL DESCRIPTION */}
-<p className="small-desc">
-  {product.smallDescription}
-</p>
-
-        {/* ✅ PRICE SECTION */}
-<div className="details-price">
-
-  {product.discountPrice > 0 ? (
-    <>
-      <span className="old-price">
-        ₹{product.price}
-      </span>
-
-      <span className="new-price">
-        ₹{product.discountPrice}
-      </span>
-    </>
-  ) : (
-    <span className="new-price">
-      ₹{product.price}
-    </span>
-  )}
-
-</div>
-
-        {/* <h3 className="details-price">₹{product.price}</h3> */}
-
-
-
-        <p
-          style={{
-            color: product.stock > 0 ? "green" : "red",
-            fontWeight: "bold",
-          }}
-        >
-          {product.stock > 0 ? `In Stock (${product.stock})` : "Out of Stock"}
-        </p>
-
-       
-
-        {/* Quantity */}
-        <div className="qty-box">
-          <button
-            onClick={() => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))}
-          >
-            -
-          </button>
-          <span>{quantity}</span>
-          <button
-            onClick={() =>
-              setQuantity((prev) => (prev < product.stock ? prev + 1 : prev))
-            }
-          >
-            +
-          </button>
-        </div>
-
-        <button
-          disabled={product.stock === 0}
-          onClick={handleAddToCart}
-          className="btn btn-primary buy-btn"
-        >
-          {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-        </button>
-
-            <button
-  className="btn btn-primary buy-btn"
-  onClick={handleBuyNow}
->
-  Buy Now
-</button>
-
-              {/* ✅ BIG DESCRIPTION */}
-<div className="big-description">
-  <h3>Product Details</h3>
-  <p>{product.description}</p>
-</div>
-
-
-             {/* <button
-                className="btn btn-primary"
-                onClick={() => window.location.href = "/checkout"}
-              >
-                Proceed to Checkout
-              </button> */}
-
-      </div>
-
-    </div>
-
-
-      <hr style={{ margin: "40px 0" }} />
-
-      <h3>Customer Reviews</h3>
-
-      {reviews.length === 0 && <p>No reviews yet</p>}
-
-      {/* {reviews.map((review) => (
-
-        <div key={review._id} className="review-card">
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <strong>{review.user?.name}</strong>
-
-            {review.isVerifiedPurchase && (
-              <span
-                style={{
-                  background: "#4caf50",
-                  color: "white",
-                  padding: "2px 8px",
-                  fontSize: "12px",
-                  borderRadius: "5px",
-                }}
-              >
-                Verified Purchase
+            <div className="stock-row">
+              <span className={`stock-badge ${product.stock > 0 ? "in" : "out"}`}>
+                {product.stock > 0 ? `In Stock (${product.stock})` : "Out of Stock"}
               </span>
-            )}
+              {hasDiscount && <div className="save">You save ₹{saveAmount}</div>}
+            </div>
+
+            <div className="purchase-card">
+              <div className="qty-selector" role="group" aria-label="Quantity selector">
+                <button onClick={() => setQuantity(q => (q > 1 ? q - 1 : 1))} aria-label="Decrease quantity">−</button>
+                <input aria-label="Quantity" value={quantity} readOnly />
+                <button onClick={() => setQuantity(q => (q < product.stock ? q + 1 : q))} aria-label="Increase quantity">+</button>
+              </div>
+
+              <button
+                disabled={product.stock === 0}
+                onClick={handleAddToCart}
+                className="btn add-cart"
+                aria-disabled={product.stock === 0}
+              >
+                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              </button>
+
+              <button className="btn buy-now" onClick={handleBuyNow}>Buy Now</button>
+
+              <ul className="trust-list" aria-hidden>
+                <li><CheckIcon /> 100% Genuine Products</li>
+                <li><CheckIcon /> Fast Delivery</li>
+                <li><CheckIcon /> Secure Payments</li>
+                <li><CheckIcon /> Easy Returns</li>
+              </ul>
+            </div>
+
+            <div className="accordion">
+              <button className="acc-head" onClick={() => setAccordionOpen(s => ({ ...s, details: !s.details }))} aria-expanded={accordionOpen.details}>
+                <strong>Product Details</strong>
+                <span className={`chev ${accordionOpen.details ? 'open' : ''}`} aria-hidden>▾</span>
+              </button>
+              {accordionOpen.details && (
+                <div className="acc-body">
+                  <p>{product.description}</p>
+                </div>
+              )}
+
+              <button className="acc-head" onClick={() => setAccordionOpen(s => ({ ...s, ingredients: !s.ingredients }))} aria-expanded={accordionOpen.ingredients}>
+                <strong>Ingredients & Usage</strong>
+                <span className={`chev ${accordionOpen.ingredients ? 'open' : ''}`} aria-hidden>▾</span>
+              </button>
+              {accordionOpen.ingredients && (
+                <div className="acc-body">
+                  <p>{product.ingredients || 'Not specified'}</p>
+                </div>
+              )}
+
+              <button className="acc-head" onClick={() => setAccordionOpen(s => ({ ...s, shipping: !s.shipping }))} aria-expanded={accordionOpen.shipping}>
+                <strong>Shipping & Returns</strong>
+                <span className={`chev ${accordionOpen.shipping ? 'open' : ''}`} aria-hidden>▾</span>
+              </button>
+              {accordionOpen.shipping && (
+                <div className="acc-body">
+                  <p>Free delivery in 3–5 business days. Returns within 7 days.</p>
+                </div>
+              )}
+            </div>
           </div>
+        </aside>
+      </div>
 
-          <div style={{ color: "gold", margin: "5px 0" }}>
-            {"★".repeat(review.rating)}
-            {"☆".repeat(5 - review.rating)}
-          </div>
-
-          <p>{review.comment}</p>
-          {review.images && review.images.length > 0 && (
-    <div style={{ marginTop: "10px" }}>
-    <img
-      src={`${API_BASE}${review.images[0]}`}
-      alt="review"
-      style={{
-        width: "120px",
-        height: "120px",
-        objectFit: "cover",
-        borderRadius: "8px",
-        border: "1px solid #ddd"
-      }}
-    />
-  </div>
-)}
-
-          
-
-            {review.adminReply && (
-
-  <div className="admin-reply">
-
-    <strong>PetRonaq Reply:</strong>
-
-    <p>{review.adminReply}</p>
-
-  </div>
-
-)}
-
-          <small>{new Date(review.createdAt).toLocaleDateString()}</small>
+      <section id="reviews" className="reviews-section">
+        <h2>Customer Reviews</h2>
+        <div className="reviews-grid">
+          {reviews.length === 0 && <div className="muted">No reviews yet</div>}
+          {reviews.map(r => (
+            <article key={r._id} className="review-card">
+              <div className="avatar">{r.user?.name?.[0] || 'U'}</div>
+              <div className="review-body">
+                <div className="review-header">
+                  <strong>{r.user?.name}</strong>
+                  {r.isVerifiedPurchase && <span className="verified">Verified Purchase</span>}
+                </div>
+                <div className="stars-inline" aria-hidden>
+                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} filled={i < r.rating} />)}
+                </div>
+                <p className="comment">{r.comment}</p>
+                {r.images && r.images.length > 0 && (
+                  <div className="review-images">
+                    {r.images.map((img, idx) => (
+                      <img key={idx} src={`${API_BASE}${img}`} alt={`review-${idx}`} />
+                    ))}
+                  </div>
+                )}
+                {r.adminReply && (
+                  <div className="admin-reply">
+                    <strong>PetRonaq Reply:</strong>
+                    <p>{r.adminReply}</p>
+                  </div>
+                )}
+                <small className="muted">{new Date(r.createdAt).toLocaleDateString()}</small>
+              </div>
+            </article>
+          ))}
         </div>
-      ))} */}
+      </section>
 
-
-          {reviews.map((review) => {
-
-  console.log("Review images:", review.images); // 👈 ADD HERE
-
-  return (
-
-    <div key={review._id} className="review-card">
-
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <strong>{review.user?.name}</strong>
-
-        {review.isVerifiedPurchase && (
-          <span
-            style={{
-              background: "#4caf50",
-              color: "white",
-              padding: "2px 8px",
-              fontSize: "12px",
-              borderRadius: "5px",
-            }}
-          >
-            Verified Purchase
-          </span>
+      <section className="related-section">
+        <h3>Related Products</h3>
+        {relatedLoading && <div className="muted">Loading related products...</div>}
+        {!relatedLoading && relatedProducts.length === 0 && <div className="muted">No related products found</div>}
+        {!relatedLoading && relatedProducts.length > 0 && (
+          <div className="related-grid">
+            {relatedProducts.map(p => (
+              <ProductCard 
+                key={p._id} 
+                item={p}
+                onClick={() => navigate(`/product/${p._id}`)}
+              />
+            ))}
+          </div>
         )}
-      </div>
+      </section>
 
-      <div style={{ color: "gold", margin: "5px 0" }}>
-        {"★".repeat(review.rating)}
-        {"☆".repeat(5 - review.rating)}
-      </div>
-
-      <p>{review.comment}</p>
-
-      {review.images && review.images.length > 0 && (
-        <div style={{ marginTop: "10px" }}>
-          <img
-            src={`${API_BASE}${review.images[0]}`}
-            alt="review"
-            style={{
-              width: "120px",
-              height: "120px",
-              objectFit: "cover",
-              borderRadius: "8px",
-              border: "1px solid #ddd"
-            }}
+      <section className="fbt-section">
+        <h3>Frequently Bought Together</h3>
+        <div className="fbt-cards">
+          <ProductCard 
+            item={product}
+            onClick={() => navigate(`/product/${product._id}`)}
           />
+          <div className="plus">+</div>
+          <div className="combo-card">
+            <div>Suggested combo item</div>
+            <div className="combo-price">₹199</div>
+            <button className="btn small">Add Combo</button>
+          </div>
         </div>
-      )}
+      </section>
 
-      {review.adminReply && (
-        <div className="admin-reply">
-          <strong>PetRonaq Reply:</strong>
-          <p>{review.adminReply}</p>
+      <section className="tips-section">
+        <h3>Pet Care Tips</h3>
+        <div className="tips-grid">
+          <article className="tip">Keep fresh water available at all times.</article>
+          <article className="tip">Maintain a regular feeding schedule to avoid overfeeding.</article>
+          <article className="tip">Schedule regular vet check-ups for preventive care.</article>
         </div>
-      )}
+      </section>
 
-      <small>{new Date(review.createdAt).toLocaleDateString()}</small>
+      <section className="recently-section">
+        <h3>Recently Viewed</h3>
+        <div className="recent-grid">
+          <div className="placeholder-card" />
+          <div className="placeholder-card" />
+          <div className="placeholder-card" />
+        </div>
+      </section>
 
-    </div>
-
+      <div className="mobile-sticky">
+        <div className="mobile-price">
+          <div>₹{hasDiscount ? product.discountPrice : product.price}</div>
+          {hasDiscount && <div className="small-old">₹{product.price}</div>}
+        </div>
+        <div className="mobile-actions">
+          <button className="btn small" onClick={handleAddToCart}>Add</button>
+          <button className="btn buy-now small" onClick={handleBuyNow}>Buy</button>
+        </div>
+      </div>
+    </main>
   );
+}
+  
 
-})}
+  
 
 
-    </div>
-  );
-};
-export default ProductDetailsPage;

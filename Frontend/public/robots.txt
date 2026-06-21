@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://petronaq.in/sitemap.xml

@@ -2,6 +2,7 @@ import ProductGrid from "../components/ProductsGrid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
+import { Helmet } from "react-helmet-async";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -44,6 +45,21 @@ function HomePage() {
   }, []);
 
   return (
+  <>
+    <Helmet>
+      <title>PetRonaq - Buy Dog Food, Cat Food & Pet Supplies Online</title>
+
+      <meta
+        name="description"
+        content="Buy premium dog food, cat food, treats, toys and pet accessories online at PetRonaq."
+      />
+
+      <meta
+        name="keywords"
+        content="dog food, cat food, pet shop, pet supplies, pet accessories, PetRonaq"
+      />
+    </Helmet>
+
     <div className="home">
       {/* HERO */}
 
@@ -188,9 +204,12 @@ function HomePage() {
 </div> 
 </div>
  </section> 
-*/}
+     {/* comments */}
     </div>
-  );
+  </>
+);
 }
+
+
 
 export default HomePage;

@@ -115,7 +115,14 @@ exports.placeOrder = async (req, res) => {
     }
 
     // EMAIL
-    const user = await User.findById(req.user._id);
+// 👇 Frontend ko turant response bhejo
+res.status(201).json(order);
+
+// 👇 Background me email bhejo
+(async () => {
+  try {
+
+    const user = await User.findById(req.user._id); 
 
     const itemsList = order.items
       .map(item => `${item.name} x ${item.quantity}`)
@@ -153,17 +160,21 @@ Thank you for shopping with <b>PetRonaq</b> 🐾
 </div>
 `;
 
-    try {
-      await sendEmail(
-        user.email,
-        "Order Confirmation - PetRonaq",
-        message
-      );
-    } catch (error) {
-      console.log("Email failed:", error.message);
-    }
+    await sendEmail(
+      user.email,
+      "Order Confirmation - PetRonaq",
+      message
+    );
 
-    res.status(201).json(order);
+    console.log("Order email sent");
+
+  } catch (err) {
+
+    console.log("Email failed:", err.message);
+
+  }
+
+})();
 
   } catch (error) {
 

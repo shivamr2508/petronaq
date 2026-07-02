@@ -212,8 +212,14 @@ exports.getAllAdminBlogs = async (req, res) => {
       .lean();
     res.json(blogs);
   } catch (error) {
-    res.status(500).json({ message: "Unable to load admin blogs" });
-  }
+    console.error("ADMIN BLOG ERROR:", error);
+
+    return res.status(500).json({
+        success: false,
+        message: error.message,
+        stack: error.stack
+    });
+}
 };
 
 exports.updateBlog = async (req, res) => {

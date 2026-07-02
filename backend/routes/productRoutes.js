@@ -17,7 +17,7 @@ router.post("/", protect, admin, createProduct);
 
 // Public
 router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.get("/:identifier", getProductById);
 
 router.put("/:id", protect, admin, updateProduct);
 

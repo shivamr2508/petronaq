@@ -21,6 +21,7 @@ const sitemapRoutes = require("./routes/sitemapRoutes");
 
 const productRoutes = require("./routes/productRoutes");
 const googleFeedRoutes = require("./routes/googleFeedRoutes");
+const Product = require("./models/Product");
 
 
 
@@ -64,6 +65,25 @@ app.use("/api/admin", adminRoutes);
 
 app.use("/api/coupons", couponRoutes);
 
+app.get(["/products/:identifier", "/product/:identifier"], async (req, res, next) => {
+  const { identifier } = req.params;
+
+  if (!/^[0-9a-fA-F]{24}$/.test(identifier)) {
+    return next();
+  }
+
+  try {
+    const product = await Product.findById(identifier).select("slug");
+    if (product?.slug) {
+      return res.redirect(301, `/products/${product.slug}`);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  return next();
+});
+
 app.use("/uploads", express.static("uploads"));
 
 //test ---------------------
@@ -85,6 +105,25 @@ const path = require("path");
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../Frontend/dist")));
+
+  app.get(["/products/:identifier", "/product/:identifier"], async (req, res, next) => {
+    const { identifier } = req.params;
+
+    if (!/^[0-9a-fA-F]{24}$/.test(identifier)) {
+      return next();
+    }
+
+    try {
+      const product = await Product.findById(identifier).select("slug");
+      if (product?.slug) {
+        return res.redirect(301, `/products/${product.slug}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return next();
+  });
 
   app.get("*", (req, res) =>
     res.sendFile(path.resolve(__dirname, "../Frontend", "dist", "index.html"))

@@ -55,7 +55,7 @@ function ProductCard({ item, onClick }) {
 }
 
 export default function ProductDetailsPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -74,19 +74,25 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/api/products/${id}`);
+        const response = await axios.get(`${API_BASE}/api/products/${slug}`);
         console.log("PRODUCT DATA:", response.data);
         setProduct(response.data);
         setSelectedIndex(0);
+        if (response.data?.slug && response.data.slug !== slug) {
+          navigate(`/products/${response.data.slug}`, { replace: true });
+          return;
+        }
         await fetchRelatedProducts(response.data);
+        await fetchReviews(response.data._id);
       } catch (err) {
         console.error(err);
+        setProduct(null);
       }
     };
 
-    const fetchReviews = async () => {
+    const fetchReviews = async (productId) => {
       try {
-        const res = await axios.get(`${API_BASE}/api/reviews/${id}`);
+        const res = await axios.get(`${API_BASE}/api/reviews/${productId}`);
         setReviews(res.data || []);
       } catch (err) {
         console.error(err);
@@ -205,11 +211,13 @@ export default function ProductDetailsPage() {
     };
 
     fetchProduct();
-    fetchReviews();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [slug]);
 
   const images = (product?.images && product.images.length) ? product.images : [product?.image || "/placeholder.png"];
+  const canonicalUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/products/${product?.slug || slug || ""}`
+    : "";
 
   const handleImageMove = (e) => {
     if (!imageWrapRef.current) return;
@@ -252,7 +260,14 @@ export default function ProductDetailsPage() {
     navigate(`/checkout?productId=${product._id}&qty=${quantity}`);
   };
 
-  if (!product) return <div className="loading">Loading...</div>;
+  if (!product) {
+    return (
+      <div className="loading" style={{ padding: "40px 20px", textAlign: "center" }}>
+        <h2>Product not found</h2>
+        <p>The product you are looking for does not exist or may have been removed.</p>
+      </div>
+    );
+  }
 
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
   const discountPercent = hasDiscount ? Math.round(((product.price - product.discountPrice) / product.price) * 100) : 0;
@@ -294,31 +309,65 @@ export default function ProductDetailsPage() {
     content={product?.images?.[0]}
   />
 
+  <meta
+    property="og:url"
+    content={canonicalUrl}
+  />
+
+  <link rel="canonical" href={canonicalUrl} />
+
   <script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: product?.name,
-      image: product?.images?.[0],
-      description:
-        product?.smallDescription ||
-        product?.description,
-      brand: {
-        "@type": "Brand",
-        name: "PetRonaq",
+    {JSON.stringify([
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product?.name,
+        url: canonicalUrl,
+        image: product?.images?.[0],
+        description:
+          product?.smallDescription ||
+          product?.description,
+        brand: {
+          "@type": "Brand",
+          name: "PetRonaq",
+        },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "INR",
+          price:
+            product?.discountPrice ||
+            product?.price,
+          availability:
+            product?.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+        },
       },
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price:
-          product?.discountPrice ||
-          product?.price,
-        availability:
-          product?.stock > 0
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://www.petronaq.in/",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Products",
+            item: "https://www.petronaq.in/products",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: product?.name,
+            item: canonicalUrl,
+          },
+        ],
       },
-    })}
+    ])}
   </script>
 </Helmet>
 
@@ -500,7 +549,7 @@ export default function ProductDetailsPage() {
               <ProductCard 
                 key={p._id} 
                 item={p}
-                onClick={() => navigate(`/product/${p._id}`)}
+                onClick={() => navigate(`/product/${p.slug || p._id}`)}
               />
             ))}
           </div>
@@ -512,7 +561,7 @@ export default function ProductDetailsPage() {
         <div className="fbt-cards">
           <ProductCard 
             item={product}
-            onClick={() => navigate(`/product/${product._id}`)}
+            onClick={() => navigate(`/product/${product.slug || product._id}`)}
           />
           <div className="plus">+</div>
           <div className="combo-card">

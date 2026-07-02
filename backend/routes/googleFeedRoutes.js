@@ -10,7 +10,7 @@ router.get("/merchant-feed.xml", async (req, res) => {
       <g:id>${product._id}</g:id>
       <g:title><![CDATA[${product.name}]]></g:title>
       <g:description><![CDATA[${product.description}]]></g:description>
-      <g:link>https://www.petronaq.in/products/${product._id}</g:link>
+      <g:link>https://www.petronaq.in/products/${product.slug || product._id}</g:link>
       <g:image_link>${product.images?.[0]}</g:image_link>
       <g:availability>in stock</g:availability>
       <g:price>${product.discountPrice || product.price} INR</g:price>

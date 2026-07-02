@@ -44,7 +44,7 @@ function ProductCard({ product, onWishlist }) {
 
   return (
     <Link
-      to={`/products/${product._id}`}
+      to={`/products/${product.slug || product._id}`}
       className="product-card"
     >
       {/* IMAGE */}

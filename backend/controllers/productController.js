@@ -1,4 +1,15 @@
 const Product = require("../models/Product");
+const { generateProductSlug } = require("../utils/slugify");
+
+const buildProductQuery = (value) => {
+  if (!value) return null;
+
+  if (value.match(/^[0-9a-fA-F]{24}$/)) {
+    return { _id: value };
+  }
+
+  return { slug: value };
+};
 
 // Create Product (Admin)
 exports.createProduct = async (req, res) => {
@@ -36,6 +47,9 @@ exports.createProduct = async (req, res) => {
       images,
       createdBy: req.user._id,
     });
+
+    product.slug = await generateProductSlug(name, product._id, Product);
+    await product.save({ validateBeforeSave: false });
 
     res.status(201).json(product);
   } catch (error) {
@@ -132,7 +146,8 @@ exports.getProducts = async (req, res) => {
 // Get Single Product
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const query = buildProductQuery(req.params.identifier || req.params.id);
+    const product = await Product.findOne(query);
 
     if (!product) {
       return res.status(404).json({
@@ -189,7 +204,13 @@ exports.updateProduct = async (req, res) => {
       product.stock = safeStock;
     }
 
-    if (name !== undefined) product.name = name;
+    if (name !== undefined) {
+      product.name = name;
+      if (product.isModified("name") || !product.slug) {
+        product.slug = await generateProductSlug(name, product._id, Product);
+      }
+    }
+
     if (description !== undefined) product.description = description;
     if (price !== undefined) product.price = price;
     if (discountPrice !== undefined) product.discountPrice = discountPrice;

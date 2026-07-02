@@ -4,13 +4,13 @@ const Product = require("../models/Product");
 
 router.get("/sitemap.xml", async (req, res) => {
   try {
-    const products = await Product.find({}, "_id updatedAt");
+    const products = await Product.find({}, "_id slug updatedAt");
 
     const urls = products
       .map(
         (p) => `
 <url>
-  <loc>https://www.petronaq.in/products/${p._id}</loc>
+  <loc>https://www.petronaq.in/products/${p.slug || p._id}</loc>
   <lastmod>${p.updatedAt.toISOString()}</lastmod>
 </url>`
       )

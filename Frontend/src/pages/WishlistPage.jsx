@@ -106,12 +106,12 @@ if (wishlist.products.length === 0){
           <img
             src={product.images[0]}
             className="wishlist-image"
-            onClick={() => navigate(`/products/${product._id}`)}
+            onClick={() => navigate(`/products/${product.slug || product._id}`)}
           />
 
           <div
             className="wishlist-info"
-            onClick={() => navigate(`/products/${product._id}`)}
+            onClick={() => navigate(`/products/${product.slug || product._id}`)}
           >
 
             <h3 className="product-name">{product.name}</h3>

@@ -7,6 +7,13 @@ const productSchema = new mongoose.Schema(
     required: true,
   },
 
+  slug: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+  },
+
   // 🔹 NEW (Small description)
   smallDescription: {
     type: String,

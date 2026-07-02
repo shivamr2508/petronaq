@@ -265,6 +265,10 @@ function AdminDashboard() {
               Reviews
             </button>
 
+            <button onClick={()=>navigate("/admin/blogs")}>
+              Blogs
+            </button>
+
           </div>
 
         </div>

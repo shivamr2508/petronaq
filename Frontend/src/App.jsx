@@ -20,6 +20,11 @@ import AddAddressPage from "./pages/AddAddressPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ReviewPage from "./pages/ReviewPage";
 import AdminReviewsPage from "./pages/admin/AdminReviewsPage";
+import AdminBlogs from "./pages/admin/AdminBlogs";
+import BlogEditorForm from "./components/admin/BlogEditorForm";
+import BlogHomePage from "./pages/BlogHomePage";
+import BlogListPage from "./pages/BlogListPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
 import AccountPage from "./pages/AccountPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
@@ -68,6 +73,12 @@ function App() {
         <Route path="/admin/edit-product/:id" element={<AdminEditProduct />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/coupons" element={<AdminCoupons />} />
+        <Route path="/admin/blogs" element={<AdminBlogs />} />
+        <Route path="/admin/blogs/add" element={<BlogEditorForm mode="create" />} />
+        <Route path="/admin/blogs/edit/:id" element={<BlogEditorForm mode="edit" />} />
+        <Route path="/blog" element={<BlogHomePage />} />
+        <Route path="/blog/list" element={<BlogListPage />} />
+        <Route path="/blog/:slug" element={<BlogDetailPage />} />
         <Route path="/add-address" element={<AddAddressPage />} />
         <Route path="/order-success" element={<OrderSuccessPage />} />
         <Route path="/review/:productId/:orderId" element={<ReviewPage />} />

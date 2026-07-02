@@ -74,7 +74,27 @@ const toReadableSlug = (value) => {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
-  return normalized;
+  return normalized.slice(0, 90);
+};
+
+const generateUniqueSlug = async (baseName, existingId = null, model = null) => {
+  const baseSlug = toReadableSlug(baseName) || "blog";
+  const shortSuffix = Math.random().toString(36).slice(2, 8);
+  let slug = `${baseSlug}-${shortSuffix}`;
+
+  if (!model) {
+    return slug;
+  }
+
+  let candidate = slug;
+  let counter = 2;
+
+  while (await model.findOne({ slug: candidate, _id: { $ne: existingId } })) {
+    candidate = `${baseSlug}-${shortSuffix}-${counter}`;
+    counter += 1;
+  }
+
+  return candidate;
 };
 
 const generateProductSlug = async (name, productId = null, ProductModel = null) => {
@@ -109,5 +129,6 @@ const generateProductSlug = async (name, productId = null, ProductModel = null) 
 
 module.exports = {
   generateProductSlug,
+  generateUniqueSlug,
   toReadableSlug,
 };

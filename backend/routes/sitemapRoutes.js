@@ -1,17 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
+const Blog = require("../models/Blog");
 
 router.get("/sitemap.xml", async (req, res) => {
   try {
-    const products = await Product.find({}, "_id slug updatedAt");
+    const [products, blogs] = await Promise.all([
+      Product.find({}, "_id slug updatedAt"),
+      Blog.find({ status: "published" }, "slug updatedAt"),
+    ]);
 
-    const urls = products
+    const productUrls = products
       .map(
         (p) => `
 <url>
   <loc>https://www.petronaq.in/products/${p.slug || p._id}</loc>
   <lastmod>${p.updatedAt.toISOString()}</lastmod>
+</url>`
+      )
+      .join("");
+
+    const blogUrls = blogs
+      .map(
+        (b) => `
+<url>
+  <loc>https://www.petronaq.in/blog/${b.slug}</loc>
+  <lastmod>${b.updatedAt.toISOString()}</lastmod>
 </url>`
       )
       .join("");
@@ -27,7 +41,8 @@ router.get("/sitemap.xml", async (req, res) => {
   <loc>https://www.petronaq.in/products</loc>
 </url>
 
-${urls}
+${productUrls}
+${blogUrls}
 
 </urlset>`;
 

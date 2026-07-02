@@ -358,6 +358,10 @@ useEffect(() => {
     <span>Orders</span>
   </Link>
 
+  <Link to="/blog">
+    <FaBox />
+    <span>Blog</span>
+  </Link>
 
   </div>
 

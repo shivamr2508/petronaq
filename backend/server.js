@@ -21,6 +21,8 @@ const sitemapRoutes = require("./routes/sitemapRoutes");
 
 const productRoutes = require("./routes/productRoutes");
 const googleFeedRoutes = require("./routes/googleFeedRoutes");
+const blogRoutes = require("./routes/blogRoutes");
+const newsletterRoutes = require("./routes/newsletterRoutes");
 const Product = require("./models/Product");
 
 
@@ -43,7 +45,8 @@ app.use("/api/auth", authRoutes);
 app.use("/", sitemapRoutes);
 
 app.use("/api/products", productRoutes);
-
+app.use("/api/blogs", blogRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 
 const uploadRoutes = require("./routes/uploadRoutes");
 

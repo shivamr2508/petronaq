@@ -66,11 +66,15 @@ exports.createBlog = async (req, res) => {
     const payload = req.body || {};
 
     if (!payload.title || String(payload.title).trim().length < 3) {
-      return res.status(422).json({ message: "Title must be at least 3 characters" });
+      return res.status(422).json({
+        message: "Title must be at least 3 characters",
+      });
     }
 
     if (!payload.content || String(payload.content).trim().length < 20) {
-      return res.status(422).json({ message: "Content must be at least 20 characters" });
+      return res.status(422).json({
+        message: "Content must be at least 20 characters",
+      });
     }
 
     const baseSlug = payload.slug || toReadableSlug(payload.title || "blog");
@@ -84,16 +88,24 @@ exports.createBlog = async (req, res) => {
       author: req.user._id,
       readingTime: getReadingTime(payload.content || ""),
       slug: uniqueSlug,
-      publishedAt: payload.status === "published" ? payload.publishedAt || new Date() : null,
+      publishedAt:
+        payload.status === "published"
+          ? payload.publishedAt || new Date()
+          : null,
     });
 
-    res.status(201).json(formatBlogResponse(blog));
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({ message: "A blog with this slug already exists" });
-    }
+    return res.status(201).json(formatBlogResponse(blog));
 
-    res.status(422).json({ message: error.message });
+  } catch (error) {
+    console.error("========== CREATE BLOG ERROR ==========");
+    console.error(error);
+    console.error(error.stack);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 

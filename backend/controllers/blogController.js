@@ -1,4 +1,5 @@
 const Blog = require("../models/Blog");
+const mongoose = require("mongoose");
 const BlogView = require("../models/BlogView");
 const Product = require("../models/Product");
 const { toReadableSlug, generateUniqueSlug } = require("../utils/slugify");
@@ -364,7 +365,12 @@ exports.getBlogTags = async (req, res) => {
 
 exports.getRelatedBlogs = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const blog = await Blog.findOne({
+  $or: [
+    { _id: mongoose.Types.ObjectId.isValid(req.params.id) ? req.params.id : null },
+    { slug: req.params.id }
+  ]
+});
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }

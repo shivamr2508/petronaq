@@ -126,7 +126,7 @@ blogSchema.index({ author: 1, createdAt: -1 });
 blogSchema.index({ views: -1, publishedAt: -1 });
 blogSchema.index({ title: "text", slug: "text", category: "text", tags: "text", content: "text" });
 
-blogSchema.pre("validate", async function (next) {
+blogSchema.pre("validate", async function () {
   if (this.isModified("title") || !this.slug) {
     const baseSlug = toReadableSlug(this.title || "blog");
     this.slug = baseSlug || "blog";
@@ -177,8 +177,6 @@ blogSchema.pre("validate", async function (next) {
     question: sanitizePlainText(item.question || ""),
     answer: sanitizePlainText(item.answer || ""),
   }));
-
-  next();
 });
 
 module.exports = mongoose.model("Blog", blogSchema);

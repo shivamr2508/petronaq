@@ -244,82 +244,58 @@ function BlogDetailPage() {
 
       <Breadcrumbs items={[{ label: blog.category || "Blog" }, { label: blog.title }]} />
 
-      <section className="blog-detail-hero">
+     <section className="premium-blog-hero">
 
-  <div className="hero-overlay"></div>
+  <div className="premium-hero-image">
 
-  <img
-    src={blog.featuredImage || "/Pet00.png"}
-    alt={blog.title}
-    className="hero-banner-image"
-  />
+    <img
+      src={blog.featuredImage || "/Pet00.png"}
+      alt={blog.title}
+      loading="eager"
+    />
 
-  <div className="hero-content">
-
-    <span className="hero-category">
-
-      {blog.category || "General"}
-
+    <span className="premium-category">
+      {blog.category || "Pet Care"}
     </span>
 
-    <h1>
+  </div>
 
-      {blog.title}
+  <div className="premium-hero-content">
 
-    </h1>
+    <div className="premium-meta">
 
-    <p>
+      <span>
+        📅{" "}
+        {blog.publishedAt
+          ? new Date(blog.publishedAt).toLocaleDateString()
+          : "Recently"}
+      </span>
 
-      {blog.excerpt}
+      <span>•</span>
 
-    </p>
+      <span>
+        ⏱ {blog.readingTime || 3} min read
+      </span>
 
-    <div className="hero-meta">
+      <span>•</span>
 
-      <div className="hero-meta-card">
-
-        📅
-
-        <span>
-
-          {blog.publishedAt
-            ? new Date(blog.publishedAt).toLocaleDateString()
-            : "Recently"}
-
-        </span>
-
-      </div>
-
-      <div className="hero-meta-card">
-
-        ⏱
-
-        <span>
-
-          {blog.readingTime || 3} min read
-
-        </span>
-
-      </div>
-
-      <div className="hero-meta-card">
-
-        👁
-
-        <span>
-
-          {blog.views || 0} Views
-
-        </span>
-
-      </div>
+      <span>
+        👁 {blog.views || 0} Views
+      </span>
 
     </div>
+
+    <h1 className="premium-title">
+      {blog.title}
+    </h1>
+
+    <p className="premium-excerpt">
+      {blog.excerpt}
+    </p>
 
   </div>
 
 </section>
-
       <div className="blog-article-shell">
         <article className="blog-article-card">
           

@@ -8,6 +8,7 @@ import BlogSkeleton from "../components/BlogSkeleton";
 import { blogPublicService } from "../services/blogPublicService";
 import { SITE_NAME, SITE_URL } from "../config/site";
 import "../styles/blog.css";
+import "../styles/blog-detail.css";
 
 function BlogDetailPage() {
   const { slug } = useParams();
@@ -243,30 +244,167 @@ function BlogDetailPage() {
 
       <Breadcrumbs items={[{ label: blog.category || "Blog" }, { label: blog.title }]} />
 
+      <section className="blog-detail-hero">
+
+  <div className="hero-overlay"></div>
+
+  <img
+    src={blog.featuredImage || "/Pet00.png"}
+    alt={blog.title}
+    className="hero-banner-image"
+  />
+
+  <div className="hero-content">
+
+    <span className="hero-category">
+
+      {blog.category || "General"}
+
+    </span>
+
+    <h1>
+
+      {blog.title}
+
+    </h1>
+
+    <p>
+
+      {blog.excerpt}
+
+    </p>
+
+    <div className="hero-meta">
+
+      <div className="hero-meta-card">
+
+        📅
+
+        <span>
+
+          {blog.publishedAt
+            ? new Date(blog.publishedAt).toLocaleDateString()
+            : "Recently"}
+
+        </span>
+
+      </div>
+
+      <div className="hero-meta-card">
+
+        ⏱
+
+        <span>
+
+          {blog.readingTime || 3} min read
+
+        </span>
+
+      </div>
+
+      <div className="hero-meta-card">
+
+        👁
+
+        <span>
+
+          {blog.views || 0} Views
+
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
       <div className="blog-article-shell">
         <article className="blog-article-card">
-          <div className="blog-article-meta">
-            <span>{blog.category || "General"}</span>
-            <span>{blog.readingTime || 3} min read</span>
-            <span>{blog.views || 0} views</span>
-          </div>
-
-          <h1 className="blog-article-title">{blog.title}</h1>
-          <p className="blog-article-excerpt">{blog.excerpt}</p>
-
-          <img src={blog.featuredImage || "/Pet00.png"} alt={blog.title} loading="eager" decoding="async" />
+          
 
           <div className="blog-article-content" ref={articleRef} dangerouslySetInnerHTML={{ __html: blog.content }} />
 
-          <div className="blog-share-row">
-            <button type="button" className="blog-share-btn" onClick={handleCopyLink}>Copy Link</button>
-            <a className="blog-share-btn" href={shareLinks.facebook} target="_blank" rel="noreferrer">Facebook</a>
-            <a className="blog-share-btn" href={shareLinks.twitter} target="_blank" rel="noreferrer">Twitter</a>
-            <a className="blog-share-btn" href={shareLinks.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-            <a className="blog-share-btn" href={shareLinks.telegram} target="_blank" rel="noreferrer">Telegram</a>
-            <a className="blog-share-btn" href={shareLinks.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>
-            <button type="button" className="blog-share-btn" onClick={handleNativeShare}>Share</button>
-          </div>
+          <div className="blog-share-card">
+
+    <h3>Share this article</h3>
+
+    <div className="blog-share-grid">
+
+        <button
+            type="button"
+            className="share-btn copy"
+            onClick={handleCopyLink}
+        >
+            🔗 Copy Link
+        </button>
+
+        <a
+            href={shareLinks.whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="share-btn whatsapp"
+        >
+            WhatsApp
+        </a>
+
+        <a
+            href={shareLinks.facebook}
+            target="_blank"
+            rel="noreferrer"
+            className="share-btn facebook"
+        >
+            Facebook
+        </a>
+
+        <a
+            href={shareLinks.twitter}
+            target="_blank"
+            rel="noreferrer"
+            className="share-btn twitter"
+        >
+            Twitter
+        </a>
+
+        <a
+            href={shareLinks.linkedin}
+            target="_blank"
+            rel="noreferrer"
+            className="share-btn linkedin"
+        >
+            LinkedIn
+        </a>
+
+    </div>
+
+</div>
+
+<div className="author-card">
+
+    <img
+        src="/Pet00.png"
+        alt="PetRonaq"
+    />
+
+    <div>
+
+        <h3>
+
+            PetRonaq Team
+
+        </h3>
+
+        <p>
+
+            Passionate pet lovers sharing trusted guides,
+            nutrition tips and product recommendations.
+
+        </p>
+
+    </div>
+
+</div>
 
           <div className="blog-prev-next">
             <Link to={prevBlog ? `/blog/${prevBlog.slug}` : "/blog"} className="blog-side-card">

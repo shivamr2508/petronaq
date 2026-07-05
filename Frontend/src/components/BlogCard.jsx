@@ -1,36 +1,79 @@
 import { Link } from "react-router-dom";
+import "../styles/blog-card.css";
 
 function BlogCard({ blog }) {
   const imageUrl = blog.featuredImage || "/Pet00.png";
   const readableDate = blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric" }) : "Recently added";
 
-  return (
-    <article className="blog-card">
-      <Link to={`/blog/${blog.slug}`} className="blog-card-image-wrap">
-        <img src={imageUrl} alt={blog.title} loading="lazy" className="blog-card-image" />
-      </Link>
+return (
 
-      <div className="blog-card-content">
-        <div className="blog-card-meta">
-          <span>{blog.category || "General"}</span>
-          <span>{blog.readingTime || 3} min read</span>
+    <article className="premium-blog-card">
+
+        <Link
+            to={`/blog/${blog.slug}`}
+            className="premium-image-wrap"
+        >
+
+            <img
+                src={imageUrl}
+                alt={blog.title}
+                loading="lazy"
+                className="premium-image"
+            />
+
+            <span className="category-badge">
+
+                {blog.category || "General"}
+
+            </span>
+
+            <span className="reading-badge">
+
+                {blog.readingTime || 3} min
+
+            </span>
+
+        </Link>
+
+        <div className="premium-content">
+
+            <span className="publish-date">
+
+                📅 {readableDate}
+
+            </span>
+
+            <h3>
+
+                <Link to={`/blog/${blog.slug}`}>
+
+                    {blog.title}
+
+                </Link>
+
+            </h3>
+
+            <p>
+
+                {blog.excerpt ||
+                    "Discover useful pet care tips, nutrition advice and product recommendations."}
+
+            </p>
+
+            <Link
+                to={`/blog/${blog.slug}`}
+                className="read-btn"
+            >
+
+                Read Article →
+
+            </Link>
+
         </div>
 
-        <h3>
-          <Link to={`/blog/${blog.slug}`}>{blog.title}</Link>
-        </h3>
-
-        <p>{blog.excerpt || "Read this article for helpful pet care tips and product inspiration."}</p>
-
-        <div className="blog-card-footer">
-          <span>{readableDate}</span>
-          <Link to={`/blog/${blog.slug}`} className="blog-link">
-            Read more
-          </Link>
-        </div>
-      </div>
     </article>
-  );
+
+);
 }
 
 export default BlogCard;

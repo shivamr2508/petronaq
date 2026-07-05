@@ -67,56 +67,415 @@ function BlogHomePage() {
       </Helmet>
 
       <section className="blog-hero">
-        <div className="blog-eyebrow">Pet care insights</div>
-        <h1>Stories, tips, and product guides for happy pets</h1>
-        <p>Discover practical advice for dog owners, cat parents, fish keepers, and bird lovers.</p>
 
-        <form className="blog-hero-search" onSubmit={handleSearch}>
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search blog articles" />
-          <button type="submit">Search</button>
+    <div className="hero-left">
+
+        <span className="hero-badge">
+            🐾 Pet Care Knowledge Hub
+        </span>
+
+        <h1>
+            Everything Your Pet
+            Needs To Live
+            A Happy Life.
+        </h1>
+
+        <p>
+            Expert pet care guides, nutrition tips,
+            health advice, grooming secrets and
+            product recommendations trusted by
+            thousands of pet parents.
+        </p>
+
+        <form
+            className="hero-search"
+            onSubmit={handleSearch}
+        >
+
+            <input
+                value={search}
+                onChange={(e)=>setSearch(e.target.value)}
+                placeholder="Search pet care articles..."
+            />
+
+            <button type="submit">
+                Search
+            </button>
+
         </form>
-      </section>
 
-      <section className="blog-section">
-        <div className="blog-section-header">
-          <h2 className="blog-section-title">Featured articles</h2>
-        </div>
-        {loading ? <BlogSkeleton count={3} /> : <div className="blog-featured-grid">{featuredSlice.map((blog) => <BlogCard key={blog._id} blog={blog} />)}</div>}
-      </section>
+        <div className="hero-stats">
 
-      <section className="blog-section">
-        <div className="blog-section-header">
-          <h2 className="blog-section-title">Categories</h2>
+            <div className="stat-card">
+
+                <h3>500+</h3>
+
+                <span>
+                    Articles
+                </span>
+
+            </div>
+
+            <div className="stat-card">
+
+                <h3>50+</h3>
+
+                <span>
+                    Categories
+                </span>
+
+            </div>
+
+            <div className="stat-card">
+
+                <h3>100K+</h3>
+
+                <span>
+                    Readers
+                </span>
+
+            </div>
+
         </div>
-        <div className="blog-pill-list">
-          {categories.map((category) => (
-            <Link key={category} to={`/blog/category/${encodeURIComponent(category)}`} className="blog-chip">
+
+    </div>
+
+    <div className="hero-right">
+
+        <div className="hero-image">
+
+            <img
+                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80"
+                alt="Dog"
+            />
+
+        </div>
+
+        <div className="floating-card top">
+
+            ⭐ Featured Guides
+
+        </div>
+
+        <div className="floating-card bottom">
+
+            ❤️ Pet Experts
+
+        </div>
+
+    </div>
+
+</section>
+
+      <section className="featured-section">
+
+    <div className="section-heading">
+
+        <span className="section-badge">
+            ⭐ Featured Articles
+        </span>
+
+        <h2>
+            Editor's Picks
+        </h2>
+
+        <p>
+            Hand-picked pet care articles every pet parent should read.
+        </p>
+
+    </div>
+
+    {loading ? (
+
+        <BlogSkeleton count={3}/>
+
+    ) : (
+
+        <div className="featured-layout">
+
+            {featuredSlice.length > 0 && (
+
+                <div className="featured-main">
+
+                    <BlogCard
+                        blog={featuredSlice[0]}
+                        featured
+                    />
+
+                </div>
+
+            )}
+
+            <div className="featured-side">
+
+                {featuredSlice
+                    .slice(1)
+                    .map(blog=>(
+                        <BlogCard
+                            key={blog._id}
+                            blog={blog}
+                        />
+                    ))}
+
+            </div>
+
+        </div>
+
+    )}
+
+</section>
+
+      <section className="blog-category-section">
+
+  <div className="section-heading">
+
+    <span className="section-badge">
+      Browse Categories
+    </span>
+
+    <h2>
+      Find Articles By Category
+    </h2>
+
+    <p>
+      Explore pet care articles based on your favourite pet.
+    </p>
+
+  </div>
+
+  <div className="category-grid">
+
+    {categories && categories.length > 0 ? (
+
+      categories.map((item, index) => {
+
+        const category =
+          typeof item === "string"
+            ? item
+            : item?.name || item?.title || "";
+
+        let icon = "🐾";
+        let color = "default";
+
+        switch (category.toLowerCase()) {
+
+          case "dog":
+          case "dogs":
+          case "dog food":
+            icon = "🐶";
+            color = "dog";
+            break;
+
+          case "cat":
+          case "cats":
+          case "cat food":
+            icon = "🐱";
+            color = "cat";
+            break;
+
+          case "fish":
+            icon = "🐠";
+            color = "fish";
+            break;
+
+          case "bird":
+          case "birds":
+            icon = "🦜";
+            color = "bird";
+            break;
+
+          case "health":
+            icon = "❤️";
+            color = "health";
+            break;
+
+          case "nutrition":
+            icon = "🥩";
+            color = "nutrition";
+            break;
+
+          default:
+            icon = "🐾";
+        }
+
+        return (
+
+          <Link
+            key={index}
+            to={`/blog/category/${encodeURIComponent(category)}`}
+            className={`category-card ${color}`}
+          >
+
+            <div className="category-icon">
+              {icon}
+            </div>
+
+            <h3>
               {category}
-            </Link>
-          ))}
-        </div>
-      </section>
+            </h3>
 
-      <section className="blog-section">
-        <div className="blog-section-header">
-          <h2 className="blog-section-title">Popular topics</h2>
-        </div>
-        <div className="blog-chip-row">
-          {tags.map((tag) => (
-            <Link key={tag} to={`/blog/tag/${encodeURIComponent(tag)}`} className="blog-chip">
-              #{tag}
-            </Link>
-          ))}
-        </div>
-      </section>
+            <p>
+              Explore helpful guides
+            </p>
 
-      <section className="blog-section">
-        <div className="blog-section-header">
-          <h2 className="blog-section-title">Latest articles</h2>
-          <Link to="/blog/list" className="blog-link">View all</Link>
+          </Link>
+
+        );
+
+      })
+
+    ) : (
+
+      <div className="empty-category">
+
+        No Categories Available
+
+      </div>
+
+    )}
+
+  </div>
+
+</section>
+
+      <section className="topics-section">
+
+    <div className="section-heading">
+
+        <span className="section-badge">
+
+            🔥 Trending Topics
+
+        </span>
+
+        <h2>
+
+            Explore Popular Topics
+
+        </h2>
+
+        <p>
+
+            Discover what pet parents are reading the most.
+
+        </p>
+
+    </div>
+
+    <div className="topics-grid">
+
+        {
+
+            tags.length>0 ?
+
+            tags.map(tag=>(
+
+                <Link
+
+                    key={tag}
+
+                    to={`/blog/tag/${encodeURIComponent(tag)}`}
+
+                    className="topic-pill"
+
+                >
+
+                    #{tag}
+
+                </Link>
+
+            ))
+
+            :
+
+            <div className="empty-topics">
+
+                No Topics Yet
+
+            </div>
+
+        }
+
+    </div>
+
+</section>
+
+      <section className="latest-section">
+
+    <div className="section-header">
+
+        <div>
+
+            <span className="section-badge">
+
+                📰 Latest Articles
+
+            </span>
+
+            <h2>
+
+                Fresh Pet Care Guides
+
+            </h2>
+
+            <p>
+
+                Recently published articles from our experts.
+
+            </p>
+
         </div>
-        {loading ? <BlogSkeleton count={3} /> : <div className="blog-section-grid">{latest.map((blog) => <BlogCard key={blog._id} blog={blog} />)}</div>}
-      </section>
+
+        <Link
+            to="/blog/list"
+            className="view-all-btn"
+        >
+
+            View All →
+
+        </Link>
+
+    </div>
+
+    {
+
+        loading ?
+
+        (
+
+            <BlogSkeleton count={6}/>
+
+        )
+
+        :
+
+        (
+
+            <div className="latest-grid">
+
+                {
+
+                    latest.map(blog=>(
+
+                        <BlogCard
+
+                            key={blog._id}
+
+                            blog={blog}
+
+                        />
+
+                    ))
+
+                }
+
+            </div>
+
+        )
+
+    }
+
+</section>
 
       <section className="blog-section">
         <div className="blog-section-header">

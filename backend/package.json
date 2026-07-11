@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "slug:products": "node scripts/generate-product-slugs.js"
+    "slug:products": "node scripts/generate-product-slugs.js",
+    "repair:blogs": "node scripts/repair-blog-html.js",
+    "repair:blogs:dry": "node scripts/repair-blog-html.js --dry-run"
   },
   "keywords": [],
   "author": "",

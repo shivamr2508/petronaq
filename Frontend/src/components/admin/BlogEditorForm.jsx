@@ -6,6 +6,62 @@ import BlogPreviewModal from "./BlogPreviewModal";
 import BlogStatCard from "./BlogStatCard";
 import "../../styles/adminBlogs.css";
 
+// ─────────────────────────────────────────────────────────────────
+// cleanHtml: strips redundant span wrappers and un-nests duplicate
+// block elements that execCommand used to create.
+// Lives at module scope so it can be used in buildPayload and in
+// the formatter callbacks without the const temporal-dead-zone.
+// ─────────────────────────────────────────────────────────────────
+function cleanHtml(html) {
+  if (!html) return "";
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+
+  // 1. Unwrap <span> nodes that carry only a redundant inline style
+  //    (font-weight:normal / font-style:normal) — these are artefacts
+  //    of execCommand("bold") / execCommand("italic") toggling off.
+  tmp.querySelectorAll("span").forEach((span) => {
+    const style = (span.getAttribute("style") || "").trim();
+    const isRedundant =
+      !style ||
+      /^font-weight\s*:\s*(normal|400)\s*;?$/i.test(style) ||
+      /^font-style\s*:\s*normal\s*;?$/i.test(style);
+    if (isRedundant) {
+      const parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+    }
+  });
+
+  // 2. Un-nest duplicate/invalid block nesting:
+  //      <h2><h2>text</h2></h2>  →  <h2>text</h2>
+  //      <blockquote><h2><blockquote>…</blockquote></h2></blockquote>
+  //      → <h2>…</h2>  (heading wins; blockquote wrapper removed)
+  const BLOCK = new Set(["H1","H2","H3","H4","H5","H6","P","BLOCKQUOTE","PRE","DIV"]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    tmp.querySelectorAll("*").forEach((node) => {
+      if (!BLOCK.has(node.tagName)) return;
+      const children = Array.from(node.childNodes).filter(
+        (c) => c.nodeType !== Node.TEXT_NODE || c.textContent.trim() !== ""
+      );
+      if (children.length === 1 && children[0].nodeType === Node.ELEMENT_NODE) {
+        const child = children[0];
+        const outerIsHeading = /^H[1-6]$/.test(node.tagName);
+        const innerIsBlock = BLOCK.has(child.tagName);
+        if (child.tagName === node.tagName || (outerIsHeading && innerIsBlock)) {
+          while (child.firstChild) node.insertBefore(child.firstChild, child);
+          node.removeChild(child);
+          changed = true;
+        }
+      }
+    });
+  }
+
+  return tmp.innerHTML;
+}
+
 const initialState = {
   title: "",
   slug: "",
@@ -137,7 +193,9 @@ function BlogEditorForm({ mode = "create" }) {
     title: form.title,
     slug: form.slug,
     excerpt: form.excerpt,
-    content: form.content,
+    // Run the HTML cleaner one final time before every save so that any
+    // previously-stored malformed content is normalized on the way out.
+    content: cleanHtml(form.content),
     featuredImage: form.featuredImage,
     images: form.images,
     category: form.category,
@@ -210,10 +268,83 @@ function BlogEditorForm({ mode = "create" }) {
     setHasChanges(true);
   };
 
-  const handleEditorCommand = (command, value = null) => {
-    editorRef.current?.focus();
-    document.execCommand(command, false, value);
-    setForm((prev) => ({ ...prev, content: editorRef.current?.innerHTML || prev.content }));
+
+  // Block-level formatter using the Selection / Range API.
+  // This REPLACES the current block tag instead of wrapping it, which
+  // is what execCommand("formatBlock") incorrectly does.
+  // ─────────────────────────────────────────────────────────────────
+  const applyBlockFormat = (tag) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+
+    // Walk up to find the nearest block-level ancestor inside the editor
+    const INLINE = new Set(["SPAN","STRONG","B","EM","I","A","CODE","U","S","MARK","ABBR","CITE","Q","SUP","SUB"]);
+    const isBlock = (el) => el && el.nodeType === Node.ELEMENT_NODE && !INLINE.has(el.tagName) && el !== editor;
+
+    // If caret is in a text node, start from its parent
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+
+    // Climb to the immediate child of the editor (the top-level block)
+    let block = node;
+    while (block && block.parentNode !== editor) {
+      block = block.parentNode;
+    }
+
+    if (!block || block === editor) {
+      // No block found — wrap selection text in a new block
+      const newBlock = document.createElement(tag);
+      try {
+        range.surroundContents(newBlock);
+      } catch {
+        newBlock.appendChild(range.extractContents());
+        range.insertNode(newBlock);
+      }
+      sel.collapse(newBlock, newBlock.childNodes.length);
+    } else if (block.tagName.toLowerCase() === tag.toLowerCase()) {
+      // Same tag — toggle back to <p>
+      const p = document.createElement("p");
+      p.innerHTML = block.innerHTML;
+      block.parentNode.replaceChild(p, block);
+      // Restore caret inside p
+      const r = document.createRange();
+      r.selectNodeContents(p);
+      r.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    } else {
+      // Different tag — replace in-place, preserving inner content
+      const newBlock = document.createElement(tag);
+      newBlock.innerHTML = block.innerHTML;
+      block.parentNode.replaceChild(newBlock, block);
+      // Restore caret at end of new block
+      const r = document.createRange();
+      r.selectNodeContents(newBlock);
+      r.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+
+    setForm((prev) => ({ ...prev, content: cleanHtml(editor.innerHTML) }));
+    setHasChanges(true);
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  // Inline formatter (bold / italic) — execCommand is reliable here.
+  // List formatter — execCommand is reliable for UL / OL.
+  // ─────────────────────────────────────────────────────────────────
+  const applyInlineFormat = (command) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    document.execCommand(command, false, null);
+    setForm((prev) => ({ ...prev, content: cleanHtml(editor.innerHTML) }));
     setHasChanges(true);
   };
 
@@ -352,11 +483,14 @@ function BlogEditorForm({ mode = "create" }) {
           <div className="form-section">
             <label>Content</label>
             <div className="rich-editor-toolbar">
-              <button type="button" onClick={() => handleEditorCommand("bold")}>Bold</button>
-              <button type="button" onClick={() => handleEditorCommand("italic")}>Italic</button>
-              <button type="button" onClick={() => handleEditorCommand("insertUnorderedList")}>List</button>
-              <button type="button" onClick={() => handleEditorCommand("formatBlock", "h2")}>H2</button>
-              <button type="button" onClick={() => handleEditorCommand("formatBlock", "blockquote")}>Quote</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyBlockFormat("h1"); }}>H1</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyBlockFormat("h2"); }}>H2</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyBlockFormat("h3"); }}>H3</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat("bold"); }}><strong>B</strong></button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat("italic"); }}><em>I</em></button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat("insertUnorderedList"); }}>• List</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat("insertOrderedList"); }}>1. List</button>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); applyBlockFormat("blockquote"); }}>Quote</button>
             </div>
             <div
               ref={editorRef}

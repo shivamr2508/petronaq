@@ -1,45 +1,121 @@
+/* =========================
+   ACCOUNT PAGE
+========================= */
+
 .account-container{
-  padding:18px;
-  padding-bottom:90px;
+  padding: 18px;
+  padding-bottom: 90px;   /* space above bottom nav */
 }
 
 .account-title{
-  font-size:24px;
-  font-weight:700;
-  margin-bottom:4px;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .account-subtitle{
-  color:#666;
-  margin-bottom:20px;
+  color: #666;
+  margin-bottom: 20px;
 }
 
-/* MENU */
+
+/* =========================
+   MENU CARD
+========================= */
 
 .account-menu{
-  background:white;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .account-item{
-  padding:16px;
-  font-size:16px;
-  border-bottom:1px solid #eee;
-  cursor:pointer;
-  transition:background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 16px;
+  font-size: 16px;
+
+  border-bottom: 1px solid #eee;
+
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  color: #2d2d2d;
+  text-decoration: none;   /* in case Link is ever used directly */
 }
 
 .account-item:last-child{
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .account-item:hover{
-  background:#f6f6f6;
+  background: #f6f6f6;
 }
 
+
+/* =========================
+   ICON
+========================= */
+
+.account-item-icon{
+  font-size: 18px;
+  color: #7a6b5d;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+
+/* =========================
+   ACTIVE STATE
+   (current route highlighted)
+========================= */
+
+.account-item.active{
+  background: #f0f7f4;
+  color: #3d7a63;
+  font-weight: 600;
+}
+
+.account-item.active .account-item-icon{
+  color: #3d7a63;
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
 .logout{
-  color:#d9534f;
-  font-weight:600;
+  color: #d9534f;
+  font-weight: 600;
+}
+
+.logout:hover{
+  background: #fff5f5;
+}
+
+
+/* =========================
+   DESKTOP: hide this page's
+   Blog + Admin rows since
+   they are already in the
+   desktop navbar.
+   Breakpoint matches navbar.css
+========================= */
+
+@media (min-width: 1024px){
+
+  /* On desktop the blog + admin links are in the top navbar.
+     Keep them in the account menu for desktop too (harmless) — admin
+     may find it convenient. Nothing is hidden; just ensure consistent style. */
+
+  .account-container{
+    max-width: 540px;
+    margin: 40px auto;
+    padding-bottom: 40px;
+  }
+
 }

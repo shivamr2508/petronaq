@@ -114,6 +114,43 @@ REQUIRED JSON STRUCTURE:
  * @param {string} [breed] - Optional target pet breed
  * @returns {Promise<string>} - Validated JSON string
  */
+let lastUsedModel = "gemini-flash-latest";
+
+function getLastUsedModel() {
+  return lastUsedModel;
+}
+
+/**
+ * Internal helper to score model names based on version/capability so that
+ * the newest supported text generation model can be selected deterministically.
+ */
+function scoreModel(name = "") {
+  let score = 0;
+  const match = name.match(/gemini-(\d+(?:\.\d+)?)/i);
+  if (match) {
+    score += parseFloat(match[1]) * 1000;
+  } else if (name.toLowerCase().includes("latest")) {
+    score += 1800; // Between 1.5 and 2.0 or generic latest
+  }
+
+  const lower = name.toLowerCase();
+  if (lower.includes("flash") && !lower.includes("lite")) score += 50;
+  else if (lower.includes("pro")) score += 40;
+  else if (lower.includes("lite")) score += 20;
+
+  if (!lower.includes("preview") && !lower.includes("exp")) score += 10;
+
+  return score;
+}
+
+/**
+ * Generates an AI comparison in strict valid JSON format using Google Gemini API.
+ *
+ * @param {Array} products - Array of product objects to compare (max 3)
+ * @param {string} [petType] - Target pet type
+ * @param {string} [breed] - Optional target pet breed
+ * @returns {Promise<string>} - Validated JSON string
+ */
 async function generateComparison(products = [], petType = "", breed = "") {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable is not configured.");
@@ -127,16 +164,88 @@ async function generateComparison(products = [], petType = "", breed = "") {
   const prompt = buildComparisonPrompt({ products, petType, breed });
 
   try {
-    console.log("[DEBUG AI 5] Gemini request started");
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
+    // 1. List available models for this API key and log them
+    console.log("[DEBUG AI] Listing available models for API key...");
+    const responseModels = await ai.models.list();
+    const availableModels = [];
+    for await (const m of responseModels) {
+      if (m.supportedActions && m.supportedActions.includes("generateContent")) {
+        availableModels.push(m.name);
+      }
+    }
+    console.log("[geminiCompareService] Available generateContent models for API key:", availableModels);
+
+    // 2. Filter for general text generation Gemini models (excluding audio/image/vision/robotics/etc.)
+    const textModels = availableModels.filter((name) => {
+      const lower = (name || "").toLowerCase();
+      if (!lower.includes("gemini")) return false;
+      if (
+        lower.includes("tts") ||
+        lower.includes("image") ||
+        lower.includes("vision") ||
+        lower.includes("audio") ||
+        lower.includes("robotics") ||
+        lower.includes("embedding") ||
+        lower.includes("aqa") ||
+        lower.includes("computer-use")
+      ) {
+        return false;
+      }
+      return true;
     });
 
-    console.log("[DEBUG AI 6] Gemini response received");
+    if (textModels.length === 0) {
+      throw new Error("No supported Gemini text generation models found for this API key.");
+    }
+
+    // 3. Sort text models from newest to oldest using version scoring
+    textModels.sort((a, b) => scoreModel(b) - scoreModel(a));
+    console.log("[geminiCompareService] Sorted candidate text models (newest first):", textModels);
+
+    // 4. Try the newest supported text generation model (with automatic fallback if a model returns 404/unavailable)
+    let response = null;
+    let selectedModel = null;
+    let lastError = null;
+
+    for (const modelName of textModels) {
+      try {
+        console.log(`[DEBUG AI 5] Gemini request started using model: ${modelName}`);
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          },
+        });
+        selectedModel = modelName;
+        lastUsedModel = selectedModel.replace(/^models\//, "");
+        break; // Successfully generated!
+      } catch (err) {
+        lastError = err;
+        const errMsg = (err.message || String(err)).toLowerCase();
+        // If model returns 404/unavailable or not found for new users, log warning and try the next candidate
+        if (
+          err.status === 404 ||
+          errMsg.includes("not found") ||
+          errMsg.includes("no longer available") ||
+          errMsg.includes("not supported")
+        ) {
+          console.warn(`[geminiCompareService] Model ${modelName} returned 404/unavailable (${err.message}). Trying next newest model...`);
+          continue;
+        }
+        // If rate limited or other fatal error, let it propagate or try fallback
+        if (err.status === 429) {
+          throw err;
+        }
+        console.warn(`[geminiCompareService] Error with model ${modelName}: ${err.message}. Trying next model...`);
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Failed to generate content with any available Gemini text model.");
+    }
+
+    console.log(`[DEBUG AI 6] Gemini response received from model: ${selectedModel}`);
     let rawText = response.text ? response.text.trim() : "";
     // Clean up markdown code blocks if present
     if (rawText.startsWith("```")) {
@@ -163,4 +272,5 @@ async function generateComparison(products = [], petType = "", breed = "") {
 module.exports = {
   generateComparison,
   buildComparisonPrompt,
+  getLastUsedModel,
 };

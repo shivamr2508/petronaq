@@ -1,7 +1,7 @@
 const Comparison = require("../models/Comparison");
 const Product = require("../models/Product");
 const { toReadableSlug } = require("../utils/slugify");
-const { generateComparison } = require("../services/geminiCompareService");
+const { generateComparison, getLastUsedModel } = require("../services/geminiCompareService");
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    Compare Controller — PetRonaq AI Compare (Phase 4B)
@@ -115,7 +115,7 @@ async function processOrRetryAI(comparison) {
     comparison.aiResponse = aiText;
     comparison.aiGeneratedAt = new Date();
     comparison.lastGeneratedAt = new Date();
-    comparison.aiModel = "gemini-2.5-flash";
+    comparison.aiModel = getLastUsedModel() || "gemini-flash-latest";
     comparison.aiStatus = "completed";
     comparison.status = "completed";
     console.log("[DEBUG AI 9] aiStatus updated to completed");

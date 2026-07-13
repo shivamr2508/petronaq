@@ -226,8 +226,51 @@ function MetaBar({ comparison, isNew }) {
   );
 }
 
+/* ─── AI Safe JSON Parse Helper ──────────────────────────────────────────────── */
+function safeParseAI(aiResponse) {
+  if (!aiResponse) return null;
+  try {
+    let str = aiResponse.trim();
+    if (str.startsWith("```")) {
+      const firstNewline = str.indexOf("\n");
+      const lastBackticks = str.lastIndexOf("```");
+      if (firstNewline !== -1 && lastBackticks > firstNewline) {
+        str = str.substring(firstNewline + 1, lastBackticks).trim();
+      }
+    }
+    return JSON.parse(str);
+  } catch (err) {
+    return null;
+  }
+}
+
 /* ─── Winner card ────────────────────────────────────────────────────────────── */
-function WinnerCard({ products }) {
+function WinnerCard({ products, aiData }) {
+  if (aiData && aiData.winner && (aiData.winner.name || aiData.winner.reason)) {
+    return (
+      <section className="cp-section" aria-label="AI Winner Analysis">
+        <div className="cp-winner-card cp-winner-card--active">
+          <div className="cp-winner-shimmer" aria-hidden="true" />
+          <div className="cp-winner-top-row">
+            <span className="cp-winner-trophy" aria-hidden="true">🏆</span>
+            <span className="cp-winner-score-badge">Score: {aiData.winner.score || 10}/10</span>
+          </div>
+          <h2 className="cp-winner-title">Winner: {aiData.winner.name || "Best Choice"}</h2>
+          {products.length >= 2 && (
+            <p className="cp-winner-vs">{products.map((p) => p.name).join(" vs ")}</p>
+          )}
+          <p className="cp-winner-desc cp-winner-desc--live">
+            {aiData.winner.reason}
+          </p>
+          <div className="cp-winner-coming-chip cp-winner-coming-chip--active">
+            <span className="cp-winner-dot cp-winner-dot--active" aria-hidden="true" />
+            Powered by Gemini AI · Verified Comparison
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="cp-section" aria-label="AI Winner Analysis">
       <div className="cp-winner-card">
@@ -243,7 +286,7 @@ function WinnerCard({ products }) {
         </p>
         <div className="cp-winner-coming-chip">
           <span className="cp-winner-dot" aria-hidden="true" />
-          Powered by Gemini AI · Coming in Phase 4
+          Powered by Gemini AI · Generating Analysis...
         </div>
       </div>
     </section>
@@ -251,7 +294,7 @@ function WinnerCard({ products }) {
 }
 
 /* ─── Comparison table ───────────────────────────────────────────────────────── */
-function CompareTable({ products }) {
+function CompareTable({ products, aiData }) {
   if (products.length === 0) return null;
 
   return (
@@ -283,16 +326,26 @@ function CompareTable({ products }) {
               </div>
               {products.map((p) => {
                 const val = row.getVal(p);
+                const aiVal = aiData?.nutrition?.[row.key];
+                const hasAiVal = aiVal && aiVal !== "Information not available.";
+
                 return (
                   <div
                     key={p._id}
-                    className={`cp-table-cell cp-table-value-cell ${val ? "cp-table-cell--data" : ""}`}
+                    className={`cp-table-cell cp-table-value-cell ${val || hasAiVal ? "cp-table-cell--data" : ""}`}
                     role="cell"
                   >
-                    {val
-                      ? <span className="cp-table-value">{val}</span>
-                      : <span className="cp-ai-phase-tag" title="Populated by AI in Phase 4">🤖 Phase 4</span>
-                    }
+                    {val ? (
+                      <span className="cp-table-value">{val}</span>
+                    ) : hasAiVal ? (
+                      <span className="cp-table-value cp-table-value--ai" title="Populated by Gemini AI">
+                        ✨ {aiVal}
+                      </span>
+                    ) : aiData ? (
+                      <span className="cp-table-value cp-table-value--muted">Information not available.</span>
+                    ) : (
+                      <span className="cp-ai-phase-tag" title="Populating AI comparison...">🤖 Generating...</span>
+                    )}
                   </div>
                 );
               })}
@@ -305,35 +358,72 @@ function CompareTable({ products }) {
 }
 
 /* ─── Pros & Cons ────────────────────────────────────────────────────────────── */
-function ProsConsSection({ products }) {
+function ProsConsSection({ products, aiData }) {
   if (products.length === 0) return null;
 
   return (
     <section className="cp-section" aria-label="Pros and cons comparison">
       <div className="cp-section-title">⚡ Pros &amp; Cons</div>
       <div className={`cp-pc-grid cp-pc-grid--${products.length}col`}>
-        {products.map((p) => (
-          <div key={p._id} className="cp-pc-card">
-            <div className="cp-pc-header">
-              <img className="cp-pc-img" src={p.images?.[0] || "/placeholder.png"} alt={p.name} />
-              <span className="cp-pc-name">{p.name}</span>
-            </div>
-            <div className="cp-pc-block">
-              <div className="cp-pc-block-title"><span aria-hidden="true">✅</span> Pros</div>
-              <div className="cp-ai-locked-row">
-                <span className="cp-ai-lock-icon" aria-hidden="true">🤖</span>
-                <span className="cp-ai-lock-text">AI will generate pros in Phase 4</span>
+        {products.map((p) => {
+          const firstWord = p.name ? p.name.split(" ")[0].toLowerCase() : "";
+          const brandWord = p.brand ? p.brand.toLowerCase() : "";
+
+          const matchedPros = aiData?.pros?.filter(item => 
+            (firstWord && item.toLowerCase().includes(firstWord)) ||
+            (brandWord && item.toLowerCase().includes(brandWord))
+          ) || [];
+          const matchedCons = aiData?.cons?.filter(item => 
+            (firstWord && item.toLowerCase().includes(firstWord)) ||
+            (brandWord && item.toLowerCase().includes(brandWord))
+          ) || [];
+
+          const displayPros = matchedPros.length > 0 ? matchedPros : (aiData?.pros || []);
+          const displayCons = matchedCons.length > 0 ? matchedCons : (aiData?.cons || []);
+
+          return (
+            <div key={p._id} className="cp-pc-card">
+              <div className="cp-pc-header">
+                <img className="cp-pc-img" src={p.images?.[0] || "/placeholder.png"} alt={p.name} />
+                <span className="cp-pc-name">{p.name}</span>
+              </div>
+              <div className="cp-pc-block">
+                <div className="cp-pc-block-title"><span aria-hidden="true">✅</span> Pros</div>
+                {aiData && Array.isArray(displayPros) && displayPros.length > 0 ? (
+                  <ul className="cp-ai-list">
+                    {displayPros.map((pro, i) => (
+                      <li key={i}>{pro}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="cp-ai-locked-row">
+                    <span className="cp-ai-lock-icon" aria-hidden="true">🤖</span>
+                    <span className="cp-ai-lock-text">
+                      {aiData ? "No specific pros listed" : "Generating pros..."}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="cp-pc-block">
+                <div className="cp-pc-block-title"><span aria-hidden="true">❌</span> Cons</div>
+                {aiData && Array.isArray(displayCons) && displayCons.length > 0 ? (
+                  <ul className="cp-ai-list cp-ai-list--cons">
+                    {displayCons.map((con, i) => (
+                      <li key={i}>{con}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="cp-ai-locked-row">
+                    <span className="cp-ai-lock-icon" aria-hidden="true">🤖</span>
+                    <span className="cp-ai-lock-text">
+                      {aiData ? "No specific cons listed" : "Generating cons..."}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="cp-pc-block">
-              <div className="cp-pc-block-title"><span aria-hidden="true">❌</span> Cons</div>
-              <div className="cp-ai-locked-row">
-                <span className="cp-ai-lock-icon" aria-hidden="true">🤖</span>
-                <span className="cp-ai-lock-text">AI will generate cons in Phase 4</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -400,6 +490,168 @@ function RelatedSection({ relatedProducts }) {
           </Link>
         ))}
       </div>
+    </section>
+  );
+}
+
+/* ─── AI Analysis Sections (Phase 4C Live JSON Cards) ────────────────────────── */
+function AIAnalysisSection({ comparison, aiData, petLabel, onRetry }) {
+  // If AI completed and we parsed the JSON successfully
+  if (comparison?.aiStatus === "completed" && aiData) {
+    return (
+      <section className="cp-ai-live-sections" aria-label="Detailed AI Analysis">
+        {/* 📝 Summary */}
+        {aiData.summary && (
+          <div className="cp-section">
+            <div className="cp-section-title">📝 AI Summary</div>
+            <div className="cp-ai-card">
+              <p className="cp-ai-text">{aiData.summary}</p>
+            </div>
+          </div>
+        )}
+
+        {/* 💪 Nutrition Breakdown */}
+        {aiData.nutrition && (
+          <div className="cp-section">
+            <div className="cp-section-title">💪 Nutrition &amp; Ingredients Overview</div>
+            <div className="cp-ai-card cp-ai-card--grid">
+              <div className="cp-ai-subitem">
+                <strong className="cp-ai-subtitle">Protein Content</strong>
+                <p className="cp-ai-subtext">{aiData.nutrition.protein || "Information not available."}</p>
+              </div>
+              <div className="cp-ai-subitem">
+                <strong className="cp-ai-subtitle">Fat Content</strong>
+                <p className="cp-ai-subtext">{aiData.nutrition.fat || "Information not available."}</p>
+              </div>
+              <div className="cp-ai-subitem">
+                <strong className="cp-ai-subtitle">Fiber Content</strong>
+                <p className="cp-ai-subtext">{aiData.nutrition.fiber || "Information not available."}</p>
+              </div>
+              <div className="cp-ai-subitem">
+                <strong className="cp-ai-subtitle">Ingredient Quality</strong>
+                <p className="cp-ai-subtext">{aiData.nutrition.ingredients || "Information not available."}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 🐶 Best For & ⚠ Avoid For */}
+        <div className="cp-ai-split-grid">
+          {Array.isArray(aiData.bestFor) && aiData.bestFor.length > 0 && (
+            <div className="cp-section">
+              <div className="cp-section-title">🐶 Best For</div>
+              <div className="cp-ai-card cp-ai-card--best">
+                <ul className="cp-ai-list">
+                  {aiData.bestFor.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(aiData.avoidFor) && aiData.avoidFor.length > 0 && (
+            <div className="cp-section">
+              <div className="cp-section-title">⚠ Avoid For</div>
+              <div className="cp-ai-card cp-ai-card--avoid">
+                <ul className="cp-ai-list cp-ai-list--cons">
+                  {aiData.avoidFor.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 💰 Value For Money */}
+        {aiData.valueForMoney && (
+          <div className="cp-section">
+            <div className="cp-section-title">💰 Value For Money</div>
+            <div className="cp-ai-card">
+              <p className="cp-ai-text">{aiData.valueForMoney}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ⭐ Final Recommendation */}
+        {aiData.finalRecommendation && (
+          <div className="cp-section">
+            <div className="cp-section-title">⭐ Final Recommendation</div>
+            <div className="cp-ai-card cp-ai-card--recommend">
+              <p className="cp-ai-text cp-ai-text--bold">{aiData.finalRecommendation}</p>
+            </div>
+          </div>
+        )}
+
+        {/* 📌 Disclaimer */}
+        {aiData.disclaimer && (
+          <div className="cp-section">
+            <div className="cp-ai-disclaimer">
+              <span className="cp-ai-disclaimer-icon" aria-hidden="true">📌</span>
+              <p className="cp-ai-disclaimer-text">{aiData.disclaimer}</p>
+            </div>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  // If AI generation failed
+  if (comparison?.aiStatus === "failed") {
+    return (
+      <section className="cp-ai-placeholder cp-ai-placeholder--error" aria-label="AI analysis error">
+        <span className="cp-ai-placeholder-icon" aria-hidden="true">⚠️</span>
+        <h2 className="cp-ai-placeholder-title">AI Analysis Could Not Be Generated</h2>
+        <p className="cp-ai-placeholder-text">
+          {comparison.aiError || "An unexpected error occurred while generating the AI comparison."}
+        </p>
+        {onRetry && (
+          <button className="cp-error-retry-btn" onClick={onRetry} style={{ marginTop: 16 }}>
+            Regenerate AI Analysis
+          </button>
+        )}
+      </section>
+    );
+  }
+
+  // If AI is currently generating (or pending)
+  if (comparison?.aiStatus === "processing" || comparison?.aiStatus === "pending") {
+    return (
+      <section className="cp-ai-placeholder cp-ai-placeholder--processing" aria-label="AI analysis generating">
+        <div className="cp-loading-ring cp-loading-ring--small" aria-hidden="true" style={{ margin: "0 auto 16px" }}>
+          <div /><div /><div /><div />
+        </div>
+        <h2 className="cp-ai-placeholder-title">AI Analysis Generating...</h2>
+        <p className="cp-ai-placeholder-text">
+          Gemini AI is carefully analyzing nutrition, ingredients, and suitability for your pet.
+          Refresh in a moment to view the full analysis!
+        </p>
+        {onRetry && (
+          <button className="cp-error-retry-btn" onClick={onRetry} style={{ marginTop: 16 }}>
+            Check Status Now
+          </button>
+        )}
+      </section>
+    );
+  }
+
+  // Fallback (draft/initial state)
+  return (
+    <section className="cp-ai-placeholder" aria-label="AI analysis placeholder">
+      <div className="cp-ai-placeholder-glow" aria-hidden="true" />
+      <span className="cp-ai-placeholder-icon" aria-hidden="true">🧠</span>
+      <h2 className="cp-ai-placeholder-title">AI Analysis Coming Soon</h2>
+      <p className="cp-ai-placeholder-text">
+        Full AI-powered analysis — nutrition tables, ingredient breakdown, breed
+        suitability, winner declaration, and personalised recommendations for your{" "}
+        <strong>{petLabel?.toLowerCase() || "pet"}</strong> — is ready when generated.
+      </p>
+      {onRetry && (
+        <button className="cp-error-retry-btn" onClick={onRetry} style={{ marginTop: 16 }}>
+          Generate AI Analysis
+        </button>
+      )}
     </section>
   );
 }
@@ -550,6 +802,8 @@ export default function ComparePage() {
   const petLabel   = comparison.petType ? capitalize(comparison.petType) : "Not specified";
   const breedLabel = comparison.breed   ? formatBreed(comparison.breed)  : null;
 
+  const aiData     = safeParseAI(comparison.aiResponse);
+
   const titleProducts = products.map((p) => p.name).filter(Boolean);
   const pageTitle = titleProducts.length > 0
     ? `${titleProducts.join(" vs ")} | AI Compare | PetRonaq`
@@ -614,13 +868,13 @@ export default function ComparePage() {
         </div>
 
         {/* ── Winner Card ───────────────────────────────────────────────────── */}
-        <WinnerCard products={products} />
+        <WinnerCard products={products} aiData={aiData} />
 
         {/* ── Comparison Table ──────────────────────────────────────────────── */}
-        <CompareTable products={products} />
+        <CompareTable products={products} aiData={aiData} />
 
         {/* ── Pros & Cons ───────────────────────────────────────────────────── */}
-        <ProsConsSection products={products} />
+        <ProsConsSection products={products} aiData={aiData} />
 
         {/* ── Buy Now ───────────────────────────────────────────────────────── */}
         <BuyNowSection products={products} />
@@ -628,21 +882,13 @@ export default function ComparePage() {
         {/* ── Related Products ──────────────────────────────────────────────── */}
         <RelatedSection relatedProducts={relatedProducts} />
 
-        {/* ── AI Placeholder ────────────────────────────────────────────────── */}
-        <section className="cp-ai-placeholder" aria-label="AI analysis placeholder">
-          <div className="cp-ai-placeholder-glow" aria-hidden="true" />
-          <span className="cp-ai-placeholder-icon" aria-hidden="true">🧠</span>
-          <h2 className="cp-ai-placeholder-title">AI Analysis Coming Soon</h2>
-          <p className="cp-ai-placeholder-text">
-            Full AI-powered analysis — nutrition tables, ingredient breakdown, breed
-            suitability, winner declaration, and personalised recommendations for your{" "}
-            <strong>{petLabel.toLowerCase()}</strong> — coming in <strong>Phase 4</strong>.
-          </p>
-          <div className="cp-ai-placeholder-chip">
-            <span className="cp-ai-placeholder-chip-dot" aria-hidden="true" />
-            AI analysis will be generated in Phase 4.
-          </div>
-        </section>
+        {/* ── AI Live Analysis & Status Cards ───────────────────────────────── */}
+        <AIAnalysisSection
+          comparison={comparison}
+          aiData={aiData}
+          petLabel={petLabel}
+          onRetry={handleRetry}
+        />
 
       </main>
     </>

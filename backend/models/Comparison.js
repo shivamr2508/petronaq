@@ -58,14 +58,43 @@ const ComparisonSchema = new mongoose.Schema(
     ──────────────────────────────────────────────────────────────────────────── */
     status: {
       type: String,
-      enum: ["draft", "completed"],
+      enum: ["draft", "processing", "completed", "failed"],
       default: "draft",
     },
 
-    /* ── AI Fields (reserved for Phase 4) ────────────────────────────────────
-       aiVersion      → model/prompt version that generated the content
-       lastGeneratedAt → when AI content was last produced
+    /* ── AI Fields (Phase 4B) ────────────────────────────────────────────────
+       aiStatus      → pending, processing, completed, failed
+       aiResponse    → raw text output from Gemini
+       aiGeneratedAt → timestamp of AI completion
+       aiModel       → model name used (e.g., gemini-2.5-flash)
+       aiError       → error details if Gemini failed
     ──────────────────────────────────────────────────────────────────────────── */
+    aiStatus: {
+      type: String,
+      enum: ["draft", "pending", "processing", "completed", "failed"],
+      default: "pending",
+    },
+
+    aiResponse: {
+      type: String,
+      default: null,
+    },
+
+    aiGeneratedAt: {
+      type: Date,
+      default: null,
+    },
+
+    aiModel: {
+      type: String,
+      default: null,
+    },
+
+    aiError: {
+      type: String,
+      default: null,
+    },
+
     aiVersion: {
       type: String,
       default: null,

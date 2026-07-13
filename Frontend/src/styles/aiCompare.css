@@ -1,0 +1,763 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AI COMPARE MODAL - PetRonaq
+   Premium glassmorphism modal for product comparison selection
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Design Tokens (local to this feature) ─────────────────────────────────── */
+:root {
+  --ai-primary: #4F7A6A;
+  --ai-primary-light: #6E9F8D;
+  --ai-primary-dark: #3a5c4f;
+  --ai-accent: #7c3aed;
+  --ai-accent-light: #a78bfa;
+  --ai-gradient: linear-gradient(135deg, #4F7A6A 0%, #7c3aed 100%);
+  --ai-gradient-btn: linear-gradient(135deg, #6E9F8D 0%, #8b5cf6 100%);
+  --ai-surface: #ffffff;
+  --ai-surface-2: #f8f9fc;
+  --ai-border: rgba(79, 122, 106, 0.2);
+  --ai-shadow: 0 32px 80px rgba(0, 0, 0, 0.18);
+  --ai-chip-bg: rgba(79, 122, 106, 0.08);
+  --ai-chip-border: rgba(79, 122, 106, 0.25);
+  --ai-locked-bg: rgba(124, 58, 237, 0.07);
+  --ai-locked-border: rgba(124, 58, 237, 0.25);
+  --ai-error: #ef4444;
+  --ai-error-bg: rgba(239, 68, 68, 0.06);
+  --ai-radius: 20px;
+  --ai-radius-md: 14px;
+  --ai-radius-sm: 10px;
+}
+
+/* ─── Compare Button on Product Page ────────────────────────────────────────── */
+
+.btn-ai-compare {
+  width: 100%;
+  padding: 13px 16px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: linear-gradient(var(--ai-surface), var(--ai-surface)) padding-box,
+              var(--ai-gradient) border-box;
+  color: var(--ai-primary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.01em;
+}
+
+.btn-ai-compare::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ai-gradient);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.btn-ai-compare:hover::before {
+  opacity: 1;
+}
+
+.btn-ai-compare:hover {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(79, 122, 106, 0.25);
+}
+
+.btn-ai-compare:hover .btn-ai-compare-icon,
+.btn-ai-compare:hover .btn-ai-compare-text {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-ai-compare:active {
+  transform: translateY(0);
+}
+
+.btn-ai-compare-icon {
+  font-size: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-ai-compare-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Modal Overlay ──────────────────────────────────────────────────────────── */
+
+.aicmp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: aicmpFadeIn 0.22s ease;
+}
+
+@keyframes aicmpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Modal Box ──────────────────────────────────────────────────────────────── */
+
+.aicmp-modal {
+  background: var(--ai-surface);
+  border-radius: var(--ai-radius);
+  box-shadow: var(--ai-shadow);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: aicmpSlideUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@keyframes aicmpSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Modal Header ───────────────────────────────────────────────────────────── */
+
+.aicmp-header {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid #f0f0f5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(79, 122, 106, 0.04) 0%, rgba(124, 58, 237, 0.04) 100%);
+  flex-shrink: 0;
+}
+
+.aicmp-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.aicmp-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ai-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(79, 122, 106, 0.3);
+}
+
+.aicmp-header-text {}
+
+.aicmp-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 3px;
+  line-height: 1.3;
+}
+
+.aicmp-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.aicmp-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(107, 114, 128, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  margin-top: 2px;
+  font-family: inherit;
+}
+
+.aicmp-close:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--ai-error);
+}
+
+/* ─── Modal Body ─────────────────────────────────────────────────────────────── */
+
+.aicmp-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.aicmp-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aicmp-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.aicmp-body::-webkit-scrollbar-thumb {
+  background: rgba(79, 122, 106, 0.3);
+  border-radius: 999px;
+}
+
+/* ─── Field Groups ───────────────────────────────────────────────────────────── */
+
+.aicmp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aicmp-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aicmp-label-optional {
+  font-weight: 400;
+  color: #9ca3af;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+/* ─── Pet Type Toggle ────────────────────────────────────────────────────────── */
+
+.aicmp-pet-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.aicmp-pet-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--ai-radius-sm);
+  background: var(--ai-surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.aicmp-pet-btn:hover {
+  border-color: var(--ai-primary-light);
+  color: var(--ai-primary);
+  background: rgba(79, 122, 106, 0.04);
+}
+
+.aicmp-pet-btn.active {
+  border-color: var(--ai-primary);
+  background: rgba(79, 122, 106, 0.08);
+  color: var(--ai-primary);
+  box-shadow: 0 0 0 3px rgba(79, 122, 106, 0.12);
+}
+
+.aicmp-pet-icon {
+  font-size: 20px;
+}
+
+/* ─── Breed Dropdown ─────────────────────────────────────────────────────────── */
+
+.aicmp-dropdown-wrap {
+  position: relative;
+}
+
+.aicmp-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--ai-radius-sm);
+  font-size: 14px;
+  color: #0f172a;
+  background: var(--ai-surface);
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.aicmp-search-input:focus {
+  border-color: var(--ai-primary);
+  box-shadow: 0 0 0 3px rgba(79, 122, 106, 0.12);
+}
+
+.aicmp-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.aicmp-dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--ai-surface);
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--ai-radius-sm);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: aicmpFadeIn 0.15s ease;
+}
+
+.aicmp-dropdown-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aicmp-dropdown-list::-webkit-scrollbar-thumb {
+  background: rgba(79, 122, 106, 0.3);
+  border-radius: 999px;
+}
+
+.aicmp-dropdown-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aicmp-dropdown-item:hover {
+  background: rgba(79, 122, 106, 0.07);
+  color: var(--ai-primary);
+}
+
+.aicmp-dropdown-item.selected {
+  background: rgba(79, 122, 106, 0.1);
+  color: var(--ai-primary);
+  font-weight: 600;
+}
+
+.aicmp-dropdown-empty {
+  padding: 14px;
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* ─── Product Search ─────────────────────────────────────────────────────────── */
+
+.aicmp-product-search-wrap {
+  position: relative;
+}
+
+.aicmp-product-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--ai-radius-sm);
+  font-size: 14px;
+  color: #0f172a;
+  background: var(--ai-surface);
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.aicmp-product-search-input:focus {
+  border-color: var(--ai-primary);
+  box-shadow: 0 0 0 3px rgba(79, 122, 106, 0.12);
+}
+
+.aicmp-product-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.aicmp-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  font-size: 15px;
+}
+
+.aicmp-product-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--ai-surface);
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--ai-radius-sm);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+  animation: aicmpFadeIn 0.15s ease;
+}
+
+.aicmp-product-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aicmp-product-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(79, 122, 106, 0.3);
+  border-radius: 999px;
+}
+
+.aicmp-product-option {
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.aicmp-product-option:last-child {
+  border-bottom: none;
+}
+
+.aicmp-product-option:hover {
+  background: rgba(79, 122, 106, 0.07);
+}
+
+.aicmp-product-option.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.aicmp-product-option-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid #f0f0f5;
+}
+
+.aicmp-product-option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.aicmp-product-option-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aicmp-product-option-price {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.aicmp-product-loading {
+  padding: 14px;
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.aicmp-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e5e7eb;
+  border-top-color: var(--ai-primary);
+  border-radius: 50%;
+  animation: aicmpSpin 0.7s linear infinite;
+}
+
+@keyframes aicmpSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Selected Products Chips ────────────────────────────────────────────────── */
+
+.aicmp-selected-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.aicmp-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--ai-radius-sm);
+  background: var(--ai-chip-bg);
+  border: 1.5px solid var(--ai-chip-border);
+  transition: all 0.2s ease;
+  animation: aicmpFadeIn 0.2s ease;
+}
+
+.aicmp-chip.locked {
+  background: var(--ai-locked-bg);
+  border-color: var(--ai-locked-border);
+}
+
+.aicmp-chip-img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.aicmp-chip-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.aicmp-chip-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aicmp-chip-price {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.aicmp-chip-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--ai-gradient);
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.aicmp-chip-remove {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: rgba(107, 114, 128, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.aicmp-chip-remove:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--ai-error);
+}
+
+/* ─── Validation Message ─────────────────────────────────────────────────────── */
+
+.aicmp-validation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--ai-radius-sm);
+  background: var(--ai-error-bg);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--ai-error);
+  font-size: 13px;
+  font-weight: 500;
+  animation: aicmpFadeIn 0.2s ease;
+}
+
+.aicmp-validation-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ─── Product Counter ────────────────────────────────────────────────────────── */
+
+.aicmp-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.aicmp-counter-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.aicmp-counter-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.aicmp-counter-dot.filled {
+  background: var(--ai-primary);
+  box-shadow: 0 0 6px rgba(79, 122, 106, 0.4);
+}
+
+/* ─── Modal Footer ───────────────────────────────────────────────────────────── */
+
+.aicmp-footer {
+  padding: 16px 22px 20px;
+  border-top: 1px solid #f0f0f5;
+  background: var(--ai-surface-2);
+  flex-shrink: 0;
+}
+
+.btn-generate {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  background: var(--ai-gradient-btn);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 24px rgba(79, 122, 106, 0.3);
+}
+
+.btn-generate:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(79, 122, 106, 0.4);
+  filter: brightness(1.05);
+}
+
+.btn-generate:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-generate:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-generate-icon {
+  font-size: 18px;
+}
+
+.aicmp-footer-note {
+  text-align: center;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .aicmp-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .aicmp-modal {
+    max-width: 100%;
+    border-radius: var(--ai-radius) var(--ai-radius) 0 0;
+    max-height: 94vh;
+  }
+
+  .aicmp-header {
+    padding: 16px 16px 14px;
+  }
+
+  .aicmp-body {
+    padding: 16px 16px;
+    gap: 16px;
+  }
+
+  .aicmp-footer {
+    padding: 14px 16px 20px;
+  }
+
+  .aicmp-pet-toggle {
+    gap: 8px;
+  }
+
+  .aicmp-pet-btn {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  .aicmp-title {
+    font-size: 15px;
+  }
+}

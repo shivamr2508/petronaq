@@ -31,6 +31,7 @@ import TermsPage from "./pages/TermsPage";
 import ContactPage from "./pages/ContactPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import ReturnPolicyPage from "./pages/ReturnPolicyPage";
+import ComparePage from "./pages/ComparePage";
 
 
 function App() {
@@ -88,6 +89,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
         <Route path="/return-policy" element={<ReturnPolicyPage />} />
+        <Route path="/compare" element={<ComparePage />} />
+        <Route path="/compare/:slug" element={<ComparePage />} />
       </Routes>
     </MainLayout>
   );

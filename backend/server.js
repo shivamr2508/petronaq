@@ -23,6 +23,7 @@ const productRoutes = require("./routes/productRoutes");
 const googleFeedRoutes = require("./routes/googleFeedRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const newsletterRoutes = require("./routes/newsletterRoutes");
+const compareRoutes = require("./routes/compareRoutes");
 const Product = require("./models/Product");
 
 
@@ -67,6 +68,8 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/coupons", couponRoutes);
+
+app.use("/api/compare", compareRoutes);
 
 app.get(["/products/:identifier", "/product/:identifier"], async (req, res, next) => {
   const { identifier } = req.params;

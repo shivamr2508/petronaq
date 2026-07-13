@@ -2,11 +2,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/productDetails.css";
+import "../styles/aiCompare.css";
 import { addToCart } from "../services/cartService";
 import { addToWishlist } from "../services/wishlistService";
 import { showSuccess, showError } from "../utils/toast";
 import { API_BASE } from "../config/api";
 import { Helmet } from "react-helmet-async";
+import AICompareModal from "../components/AICompareModal";
 
 function Star({ filled }) {
   return (
@@ -61,6 +63,7 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showCompareModal, setShowCompareModal] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: "50%", y: "50%" });
   const imageWrapRef = useRef(null);
@@ -460,6 +463,17 @@ export default function ProductDetailsPage() {
 
               <button className="btn buy-now" onClick={handleBuyNow}>Buy Now</button>
 
+              <button
+                className="btn-ai-compare"
+                onClick={() => setShowCompareModal(true)}
+                id="btn-ai-compare"
+                aria-label="Compare with AI"
+                type="button"
+              >
+                <span className="btn-ai-compare-icon">🤖</span>
+                <span className="btn-ai-compare-text">Compare with AI</span>
+              </button>
+
               <ul className="trust-list" aria-hidden>
                 <li><CheckIcon /> 100% Genuine Products</li>
                 <li><CheckIcon /> Fast Delivery</li>
@@ -601,6 +615,13 @@ export default function ProductDetailsPage() {
         </div>
            </div>
     </main>
+
+      {/* AI Compare Modal */}
+      <AICompareModal
+        isOpen={showCompareModal}
+        onClose={() => setShowCompareModal(false)}
+        currentProduct={product}
+      />
   </>
 );
 }

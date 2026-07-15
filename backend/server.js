@@ -107,8 +107,7 @@ app.get("/api/debug/groq", async (req, res) => {
         }
       ],
       model: model,
-      temperature: 0.1,
-      response_format: { type: "json_object" }
+      temperature: 0.1
     });
 
     const latency = Date.now() - start;

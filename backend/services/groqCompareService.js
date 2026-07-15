@@ -11,7 +11,7 @@ function getLastUsedModel() {
 
 /**
  * Robustly extracts and parses JSON from raw Groq output.
- * Strips code fences, isolates outermost { ... }, and fixes common syntax issues.
+ * Strips code fences, isolates outermost { ... }, and parses using JSON.parse().
  */
 function extractAndParseJSON(rawText = "") {
   if (!rawText || typeof rawText !== "string") {
@@ -29,36 +29,14 @@ function extractAndParseJSON(rawText = "") {
     text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
   }
 
-  // 2. Try direct parsing
-  try {
-    return JSON.parse(text);
-  } catch (directErr) {
-    // Continue to robust extraction
-  }
-
-  // 3. Extract only the outermost JSON object { ... }
+  // 2. Extract only the outermost JSON object { ... }
   const firstBrace = text.indexOf("{");
   const lastBrace = text.lastIndexOf("}");
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    const jsonCandidate = text.substring(firstBrace, lastBrace + 1).trim();
-
-    try {
-      return JSON.parse(jsonCandidate);
-    } catch (candidateErr) {
-      // 4. Clean up common syntax errors in candidate (e.g. trailing commas before } or ])
-      const cleanedCandidate = jsonCandidate
-        .replace(/,\s*([\]}])/g, "$1")
-        .replace(/\r?\n(?!(?:[^"]*"[^"]*")*[^"]*$)/g, "\\n");
-
-      try {
-        return JSON.parse(cleanedCandidate);
-      } catch (finalErr) {
-        throw finalErr;
-      }
-    }
+    text = text.substring(firstBrace, lastBrace + 1).trim();
   }
 
-  // If no { ... } found, throw the original parse attempt error
+  // 3. Parse using JSON.parse()
   return JSON.parse(text);
 }
 
@@ -85,107 +63,91 @@ async function generateGroqComparison(products = [], petType = "", breed = "") {
   }
 
   const groq = new Groq({ apiKey: rawKey });
-  const prompt = buildComparisonPrompt({ products, petType, breed });
+  const basePrompt = buildComparisonPrompt({ products, petType, breed });
 
-  // List of candidate models suitable for structured JSON generation on Groq
-  const candidateModels = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768"
+  const systemPrompt = `You are an API.
+
+Return ONLY valid JSON.
+
+Never return markdown.
+
+Never return code fences.
+
+Never explain anything.
+
+Never write extra text.
+
+The first character must be {
+
+The last character must be }
+
+Return valid JSON only.`;
+
+  const userPrompt = `${basePrompt}
+
+IMPORTANT:
+
+Return ONLY valid JSON.
+
+Do not wrap the JSON in markdown.
+
+Do not use \`\`\`json
+
+Do not explain anything.`;
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt }
   ];
 
-  let response = null;
-  let selectedModel = null;
-  let lastError = null;
+  console.log("[DEBUG GROQ] Request Started");
+  lastUsedModel = "llama-3.3-70b-versatile";
 
-  for (const modelName of candidateModels) {
-    try {
-      console.log(`[DEBUG AI GROQ] Groq request started using model: ${modelName}`);
-      response = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are PetRonaq AI, an expert pet product comparison assistant. You must always return STRICT VALID JSON matching the requested schema exactly. Never include markdown code fences, comments, or explanatory text outside the JSON object."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        model: modelName,
-        temperature: 0.2,
-        response_format: { type: "json_object" }
-      });
-      console.log(`[DEBUG AI GROQ] Groq response received from model: ${modelName}`);
-      selectedModel = modelName;
-      lastUsedModel = selectedModel;
-      break;
-    } catch (err) {
-      lastError = err;
-      console.warn(`[groqCompareService] Error with model ${modelName}: ${err.message}. Trying next candidate model...`);
-      continue;
-    }
-  }
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    temperature: 0.2,
+    messages
+  });
 
-  if (!response || !response.choices || !response.choices[0] || !response.choices[0].message) {
-    throw lastError || new Error("Failed to generate content with any available Groq model.");
-  }
-
-  console.log(`[DEBUG AI GROQ 6] Groq response received from model: ${selectedModel}`);
-  const rawText = response.choices[0].message.content ? response.choices[0].message.content.trim() : "";
-  console.log("===================================================================");
-  console.log(`[DEBUG AI GROQ RAW RESPONSE from ${selectedModel}]:\n${rawText}`);
-  console.log("===================================================================");
+  console.log("[DEBUG GROQ] Response Received");
+  const raw = completion.choices[0].message.content;
+  console.log(`[DEBUG GROQ] Raw Response: ${raw}`);
 
   let parsed = null;
   try {
-    parsed = extractAndParseJSON(rawText);
-    console.log("[DEBUG AI GROQ 7] JSON parsed successfully on first attempt");
-  } catch (firstErr) {
-    console.warn(`[groqCompareService] First JSON.parse() failed: ${firstErr.message}. Initiating repair prompt retry...`);
+    parsed = extractAndParseJSON(raw);
+    console.log("[DEBUG GROQ] JSON Parsed");
+  } catch (parseErr) {
+    console.log("[DEBUG GROQ] Retry Triggered");
 
-    const repairPrompt = `You previously generated the following pet product comparison response, but it could not be parsed due to a JSON SyntaxError: "${firstErr.message}".
-
-Here is the RAW text you returned:
-\`\`\`text
-${rawText}
-\`\`\`
-
-Please fix ALL JSON syntax errors (such as missing or extra commas, unescaped quotes, or mismatched brackets/braces).
-Return ONLY valid, well-formed JSON matching the exact schema required. Do NOT include any markdown code fences (\`\`\`json), comments, or introductory/explanatory text. Return ONLY the raw JSON object starting with { and ending with }.`;
-
-    console.log(`[DEBUG AI GROQ REPAIR] Calling Groq (${selectedModel}) with repair prompt...`);
-    const repairResponse = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert JSON syntax repair assistant. Return ONLY strictly valid JSON without markdown code blocks."
-        },
-        {
-          role: "user",
-          content: repairPrompt
-        }
-      ],
-      model: selectedModel,
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
-
-    const rawRepairText = repairResponse.choices?.[0]?.message?.content ? repairResponse.choices[0].message.content.trim() : "";
-    console.log("===================================================================");
-    console.log(`[DEBUG AI GROQ RAW REPAIR RESPONSE from ${selectedModel}]:\n${rawRepairText}`);
-    console.log("===================================================================");
+    const repairMessages = [
+      { role: "system", content: systemPrompt },
+      {
+        role: "user",
+        content: `The following JSON is invalid.\n\nRepair it.\n\nReturn ONLY valid JSON.\n\nNo explanation.\n\nHere is the broken JSON:\n\n${raw}`
+      }
+    ];
 
     try {
-      parsed = extractAndParseJSON(rawRepairText);
-      console.log("[DEBUG AI GROQ 7] JSON parsed successfully after repair prompt retry!");
-    } catch (repairErr) {
-      console.error("[groqCompareService] Repair prompt retry also failed to produce valid JSON:", repairErr.message);
-      throw new Error(`AI generated invalid JSON even after repair prompt retry: ${repairErr.message}`);
+      const repairCompletion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.2,
+        messages: repairMessages
+      });
+
+      console.log("[DEBUG GROQ] Response Received");
+      const rawRepair = repairCompletion.choices[0].message.content;
+      console.log(`[DEBUG GROQ] Raw Response: ${rawRepair}`);
+
+      parsed = extractAndParseJSON(rawRepair);
+      console.log("[DEBUG GROQ] JSON Parsed");
+      console.log("[DEBUG GROQ] Retry Success");
+    } catch (retryErr) {
+      console.log("[DEBUG GROQ] Retry Failed");
+      throw new Error("Groq returned invalid JSON after retry.");
     }
   }
 
-  // Return stringified clean valid JSON
   return JSON.stringify(parsed);
 }
 

@@ -12,6 +12,8 @@ const { generateComparison, getLastUsedModel } = require("../services/geminiComp
    product IDs.
 ───────────────────────────────────────────────────────────────────────────── */
 async function deriveSlug(productIds) {
+  const dsStart = Date.now();
+  console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] deriveSlug() START`);
   if (!productIds || productIds.length === 0) {
     throw new Error("At least one product ID is required");
   }
@@ -40,105 +42,100 @@ async function deriveSlug(productIds) {
   const raw = tokens.join("-vs-");
   const slug = toReadableSlug(raw) || "compare";
 
+  const dsElapsed = Date.now() - dsStart;
+  console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] deriveSlug() END — slug: "${slug}" (${dsElapsed}ms)`);
   return { slug, products };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Internal helper: process AI generation or retry based on aiStatus (Phase 4B)
+   Internal helper: run AI generation in the background (fire-and-forget).
+   Used by findOrCreate so the HTTP response is sent first.
 ───────────────────────────────────────────────────────────────────────────── */
-async function processOrRetryAI(comparison) {
-  if (!comparison) return comparison;
+function triggerAIBackground(comparisonId) {
+  // Defer to next event-loop tick so the response is sent first
+  setImmediate(async () => {
+    const bgStart = Date.now();
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] Background AI task started inside setImmediate for ID: ${comparisonId}`);
+    try {
+      // Re-fetch fresh document (the one returned to frontend is already populated)
+      let comparison = await Comparison.findById(comparisonId);
+      if (!comparison) {
+        console.warn(`[COMPARE BG] Comparison ${comparisonId} not found in background job.`);
+        return;
+      }
 
-  console.log("[DEBUG AI 1] Entered processOrRetryAI(), comparison ID:", comparison._id);
-  console.log("[DEBUG AI 2] aiStatus before processing:", comparison.aiStatus);
+      // Guard: already completed or processing by another concurrent request
+      if (comparison.aiStatus === "completed" && comparison.aiResponse) {
+        console.log(`[COMPARE BG] Comparison ${comparisonId} already completed – skipping.`);
+        return;
+      }
 
-  // 1. If aiStatus == completed -> Return saved AI response. Never call Gemini again.
-  if (comparison.aiStatus === "completed" && comparison.aiResponse) {
-    console.log("[DEBUG AI] Comparison already completed, skipping Gemini call.");
-    return comparison;
-  }
+      // Acquire processing lock atomically to prevent duplicate Gemini calls
+      const locked = await Comparison.findOneAndUpdate(
+        { _id: comparisonId, aiStatus: { $ne: "processing" } },
+        { $set: { aiStatus: "processing", status: "processing", aiError: null } },
+        { new: true }
+      );
 
-  // 2. If aiStatus == processing -> Do NOT call Gemini again. Return immediately. Frontend can poll later.
-  if (comparison.aiStatus === "processing") {
-    console.log("[DEBUG AI] Comparison is currently processing, returning immediately without calling Gemini again.");
-    return comparison;
-  }
+      if (!locked) {
+        console.log(`[COMPARE BG] Lock not acquired for ${comparisonId} – another job is running.`);
+        return;
+      }
 
-  // 3. If aiResponse does not exist OR aiStatus == pending OR aiStatus == failed (allow regeneration)
-  try {
-    // Immediately update aiStatus = processing and save document using atomic findOneAndUpdate
-    // This prevents duplicate AI generation across concurrent requests for the same comparison.
-    const locked = await Comparison.findOneAndUpdate(
-      {
-        _id: comparison._id,
-        aiStatus: { $ne: "processing" },
-      },
-      {
-        $set: {
-          aiStatus: "processing",
-          status: "processing",
-          aiError: null,
-        },
-      },
-      { new: true }
-    );
+      comparison = locked;
 
-    if (!locked) {
-      // Another request won the race and is already processing or completed. Do NOT call Gemini again.
-      console.log("[DEBUG AI] Failed to acquire processing lock (already locked by another request).");
-      return comparison;
-    }
-
-    comparison = locked;
-    console.log("[DEBUG AI 3] Acquired processing lock for comparison ID:", comparison._id);
-
-    // Ensure products array is populated with full data for the prompt
-    let productsList = comparison.products || [];
-    if (productsList.length > 0 && typeof productsList[0] === "object" && productsList[0]._id) {
-      // already populated
-    } else {
+      // Populate product fields needed for the Gemini prompt
       await comparison.populate(
         "products",
         "name slug images discountPrice price smallDescription description categories petTypes stock ingredients nutrition nutritionalInfo brand"
       );
-      productsList = comparison.products || [];
+      const productsList = comparison.products || [];
+
+      const aiStart = Date.now();
+      console.log(`[COMPARE BG] Calling generateComparison() for ${comparisonId}`);
+
+      const aiText = await generateComparison(productsList, comparison.petType, comparison.breed);
+
+      const aiMs = Date.now() - aiStart;
+      console.log(`[COMPARE BG] generateComparison() completed in ${aiMs}ms for ${comparisonId}`);
+
+      comparison.aiResponse = aiText;
+      comparison.aiGeneratedAt = new Date();
+      comparison.lastGeneratedAt = new Date();
+      comparison.aiModel = getLastUsedModel() || "gemini-flash-latest";
+      comparison.aiStatus = "completed";
+      comparison.status = "completed";
+      await comparison.save();
+
+      const totalMs = Date.now() - bgStart;
+      console.log(`[COMPARE BG] AI generation saved successfully for ${comparisonId} (total: ${totalMs}ms)`);
+    } catch (err) {
+      const totalMs = Date.now() - bgStart;
+      console.error(`[COMPARE BG] AI generation failed for ${comparisonId} after ${totalMs}ms:`, err.message || err);
+      try {
+        await Comparison.findByIdAndUpdate(comparisonId, {
+          $set: { aiStatus: "failed", status: "failed", aiError: err.message || String(err) },
+        });
+      } catch (saveErr) {
+        console.error(`[COMPARE BG] Could not save failure state for ${comparisonId}:`, saveErr.message || saveErr);
+      }
     }
-
-    console.log("[DEBUG AI 4] Calling generateComparison()");
-    const aiText = await generateComparison(
-      productsList,
-      comparison.petType,
-      comparison.breed
-    );
-
-    // After Gemini succeeds -> Save aiResponse, aiGeneratedAt, aiModel, aiStatus = completed
-    comparison.aiResponse = aiText;
-    comparison.aiGeneratedAt = new Date();
-    comparison.lastGeneratedAt = new Date();
-    comparison.aiModel = getLastUsedModel() || "gemini-flash-latest";
-    comparison.aiStatus = "completed";
-    comparison.status = "completed";
-    console.log("[DEBUG AI 9] aiStatus updated to completed");
-    await comparison.save();
-    console.log("[DEBUG AI 8] Comparison saved");
-  } catch (err) {
-    console.error("[DEBUG AI ERROR in processOrRetryAI] Full error stack:\n", err.stack || err);
-    console.error("[processOrRetryAI] Gemini generation failed:", err.message || err);
-    // If Gemini fails -> Save aiStatus = failed, aiError. Return comparison safely without crashing API.
-    comparison.aiStatus = "failed";
-    comparison.status = "failed";
-    comparison.aiError = err.message || String(err);
-    await comparison.save();
-  }
-
-  return comparison;
+  });
 }
+
 
 /* ─────────────────────────────────────────────────────────────────────────────
    POST /api/compare/create
    Body: { productIds: string[], petType?: string, breed?: string }
+
+   IMPORTANT: This handler MUST respond immediately with the slug.
+   AI generation is kicked off asynchronously AFTER the response is sent.
 ───────────────────────────────────────────────────────────────────────────── */
 exports.findOrCreate = async (req, res) => {
+  const reqStart = Date.now();
+  console.log(`\n===================================================================`);
+  console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 1. Request received for POST /api/compare/create`);
+
   try {
     const { productIds, petType, breed } = req.body;
 
@@ -150,28 +147,49 @@ exports.findOrCreate = async (req, res) => {
       return res.status(400).json({ message: "Maximum 3 products can be compared" });
     }
 
+    // ── Step 1: Slug generation ──────────────────────────────────────────────
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 2. deriveSlug() START`);
+    const slugStart = Date.now();
     let slug, resolvedProducts;
     try {
       ({ slug, products: resolvedProducts } = await deriveSlug(productIds));
     } catch (slugErr) {
       return res.status(400).json({ message: slugErr.message });
     }
+    const slugMs = Date.now() - slugStart;
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 2. deriveSlug() END (${slugMs}ms elapsed from step 2 start, ${Date.now() - reqStart}ms total)`);
 
-    // Check for existing comparison
-    let existing = await Comparison.findOne({ slug }).populate(
+    // ── Step 2: MongoDB lookup ───────────────────────────────────────────────
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 3. MongoDB findOne() START`);
+    const dbStart = Date.now();
+    const existing = await Comparison.findOne({ slug }).populate(
       "products",
       "name slug images discountPrice price smallDescription description categories petTypes stock ingredients nutrition nutritionalInfo brand"
     );
+    const dbMs = Date.now() - dbStart;
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 3. MongoDB findOne() END (${dbMs}ms elapsed, found: ${!!existing}, ${Date.now() - reqStart}ms total)`);
 
     if (existing) {
-      existing = await processOrRetryAI(existing);
-      return res.status(200).json({ comparison: existing, found: true });
+      // Comparison already exists – return immediately, trigger background AI only if needed
+      console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 5. res.json() START sending response (existing comparison found after ${Date.now() - reqStart}ms)`);
+      res.status(200).json({ comparison: existing, found: true });
+      console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 5. res.json() END sent to frontend successfully`);
+
+      // Fire background AI if not yet complete (non-blocking – response already sent)
+      if (existing.aiStatus !== "completed" && existing.aiStatus !== "processing") {
+        console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 6. Background AI triggering via setImmediate for ID: ${existing._id}`);
+        triggerAIBackground(existing._id);
+      }
+      console.log(`===================================================================\n`);
+      return;
     }
 
-    // Create new comparison
+    // ── Step 3: Create new comparison document ───────────────────────────────
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 4. MongoDB save() / create() START`);
+    const createStart = Date.now();
     const resolvedIds = resolvedProducts.map((p) => p._id);
 
-    let comparison = await Comparison.create({
+    const comparison = await Comparison.create({
       slug,
       products: resolvedIds,
       petType: petType ? String(petType).trim().toLowerCase() : undefined,
@@ -179,15 +197,28 @@ exports.findOrCreate = async (req, res) => {
       status: "draft",
       aiStatus: "pending",
     });
+    const createMs = Date.now() - createStart;
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 4. MongoDB save() / create() END (ID: ${comparison._id}, ${createMs}ms elapsed, ${Date.now() - reqStart}ms total)`);
 
+    // Populate for the response payload
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 4b. MongoDB populate() START`);
+    const popStart = Date.now();
     await comparison.populate(
       "products",
       "name slug images discountPrice price smallDescription description categories petTypes stock ingredients nutrition nutritionalInfo brand"
     );
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 4b. MongoDB populate() END (${Date.now() - popStart}ms elapsed, ${Date.now() - reqStart}ms total)`);
 
-    comparison = await processOrRetryAI(comparison);
+    // ── Step 4: Send response IMMEDIATELY (AI runs in background) ────────────
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 5. res.json() START sending response (new comparison created after ${Date.now() - reqStart}ms total)`);
+    res.status(201).json({ comparison, found: false });
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 5. res.json() END sent to frontend successfully`);
 
-    return res.status(201).json({ comparison, found: false });
+    // ── Step 5: Fire background AI generation (after response is sent) ───────
+    console.log(`[COMPARE PROFILE] [${new Date().toISOString()}] 6. Background AI triggering via setImmediate for ID: ${comparison._id}`);
+    triggerAIBackground(comparison._id);
+    console.log(`===================================================================\n`);
+
   } catch (err) {
     console.error("[compareController] findOrCreate error:", err);
     return res.status(500).json({ message: "Server error creating comparison" });
@@ -214,7 +245,7 @@ exports.findComparison = async (req, res) => {
       return res.status(400).json({ message: slugErr.message });
     }
 
-    let comparison = await Comparison.findOne({ slug }).populate(
+    const comparison = await Comparison.findOne({ slug }).populate(
       "products",
       "name slug images discountPrice price smallDescription description categories petTypes stock ingredients nutrition nutritionalInfo brand"
     );
@@ -223,9 +254,14 @@ exports.findComparison = async (req, res) => {
       return res.status(404).json({ message: "Comparison not found", slug });
     }
 
-    comparison = await processOrRetryAI(comparison);
+    // Return immediately — frontend polls until aiStatus === "completed"
+    res.status(200).json({ comparison, found: true });
 
-    return res.status(200).json({ comparison, found: true });
+    // Trigger background AI only if not already done or in progress
+    if (comparison.aiStatus !== "completed" && comparison.aiStatus !== "processing") {
+      console.log(`[COMPARE FIND] Triggering background AI for: ${comparison._id} (aiStatus: ${comparison.aiStatus})`);
+      triggerAIBackground(comparison._id);
+    }
   } catch (err) {
     console.error("[compareController] findComparison error:", err);
     return res.status(500).json({ message: "Server error finding comparison" });
@@ -243,7 +279,7 @@ exports.findBySlug = async (req, res) => {
       return res.status(400).json({ message: "Slug is required" });
     }
 
-    let comparison = await Comparison.findOneAndUpdate(
+    const comparison = await Comparison.findOneAndUpdate(
       { slug: slug.toLowerCase().trim() },
       {
         $inc: { viewCount: 1 },
@@ -262,9 +298,14 @@ exports.findBySlug = async (req, res) => {
       return res.status(404).json({ message: "Comparison not found" });
     }
 
-    comparison = await processOrRetryAI(comparison);
+    // Return immediately — frontend polls until aiStatus === "completed"
+    res.status(200).json({ comparison });
 
-    return res.status(200).json({ comparison });
+    // Trigger background AI only if not already done or in progress
+    if (comparison.aiStatus !== "completed" && comparison.aiStatus !== "processing") {
+      console.log(`[COMPARE SLUG] Triggering background AI for: ${comparison._id} (aiStatus: ${comparison.aiStatus})`);
+      triggerAIBackground(comparison._id);
+    }
   } catch (err) {
     console.error("[compareController] findBySlug error:", err);
     return res.status(500).json({ message: "Server error fetching comparison" });

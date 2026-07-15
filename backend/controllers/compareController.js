@@ -1,7 +1,7 @@
 const Comparison = require("../models/Comparison");
 const Product = require("../models/Product");
 const { toReadableSlug } = require("../utils/slugify");
-const { generateComparison, getLastUsedModel } = require("../services/geminiCompareService");
+const { generateGroqComparison, getLastUsedModel } = require("../services/groqCompareService");
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    Compare Controller — PetRonaq AI Compare (Phase 4B)
@@ -92,17 +92,17 @@ function triggerAIBackground(comparisonId) {
       const productsList = comparison.products || [];
 
       const aiStart = Date.now();
-      console.log(`[COMPARE BG] Calling generateComparison() for ${comparisonId}`);
+      console.log(`[COMPARE BG] Calling generateGroqComparison() for ${comparisonId}`);
 
-      const aiText = await generateComparison(productsList, comparison.petType, comparison.breed);
+      const aiText = await generateGroqComparison(productsList, comparison.petType, comparison.breed);
 
       const aiMs = Date.now() - aiStart;
-      console.log(`[COMPARE BG] generateComparison() completed in ${aiMs}ms for ${comparisonId}`);
+      console.log(`[COMPARE BG] generateGroqComparison() completed in ${aiMs}ms for ${comparisonId}`);
 
       comparison.aiResponse = aiText;
       comparison.aiGeneratedAt = new Date();
       comparison.lastGeneratedAt = new Date();
-      comparison.aiModel = getLastUsedModel() || "gemini-flash-latest";
+      comparison.aiModel = getLastUsedModel() || "llama-3.3-70b-versatile";
       comparison.aiStatus = "completed";
       comparison.status = "completed";
       await comparison.save();

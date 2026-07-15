@@ -1,4 +1,5 @@
-require("dotenv").config({ path: "./.env" });
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
@@ -105,9 +106,6 @@ app.get("/api/protected", protect, (req, res) => {
 // app.get("/", (req, res) => {        
 //   res.send("PetRonaq API is running...");
 // });
-
-
-const path = require("path");
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../Frontend/dist")));

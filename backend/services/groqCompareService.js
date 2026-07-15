@@ -1,3 +1,5 @@
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const Groq = require("groq-sdk");
 const { buildComparisonPrompt } = require("./geminiCompareService");
 
@@ -69,7 +71,12 @@ function extractAndParseJSON(rawText = "") {
  * @returns {Promise<string>} - Validated JSON string
  */
 async function generateGroqComparison(products = [], petType = "", breed = "") {
-  if (!process.env.GROQ_API_KEY) {
+  let rawKey = process.env.GROQ_API_KEY ? String(process.env.GROQ_API_KEY).trim() : "";
+  if ((rawKey.startsWith('"') && rawKey.endsWith('"')) || (rawKey.startsWith("'") && rawKey.endsWith("'"))) {
+    rawKey = rawKey.slice(1, -1).trim();
+  }
+
+  if (!rawKey) {
     throw new Error("GROQ_API_KEY environment variable is not configured.");
   }
 
@@ -77,7 +84,7 @@ async function generateGroqComparison(products = [], petType = "", breed = "") {
     throw new Error("At least one product must be provided for comparison.");
   }
 
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  const groq = new Groq({ apiKey: rawKey });
   const prompt = buildComparisonPrompt({ products, petType, breed });
 
   // List of candidate models suitable for structured JSON generation on Groq
@@ -93,7 +100,7 @@ async function generateGroqComparison(products = [], petType = "", breed = "") {
 
   for (const modelName of candidateModels) {
     try {
-      console.log(`[DEBUG AI GROQ 5] Groq request started using model: ${modelName}`);
+      console.log(`[DEBUG AI GROQ] Groq request started using model: ${modelName}`);
       response = await groq.chat.completions.create({
         messages: [
           {
@@ -109,12 +116,12 @@ async function generateGroqComparison(products = [], petType = "", breed = "") {
         temperature: 0.2,
         response_format: { type: "json_object" }
       });
+      console.log(`[DEBUG AI GROQ] Groq response received from model: ${modelName}`);
       selectedModel = modelName;
       lastUsedModel = selectedModel;
       break;
     } catch (err) {
       lastError = err;
-      const errMsg = (err.message || String(err)).toLowerCase();
       console.warn(`[groqCompareService] Error with model ${modelName}: ${err.message}. Trying next candidate model...`);
       continue;
     }

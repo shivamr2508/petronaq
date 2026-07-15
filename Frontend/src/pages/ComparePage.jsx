@@ -229,6 +229,8 @@ function MetaBar({ comparison, isNew }) {
 /* ─── AI Safe JSON Parse Helper ──────────────────────────────────────────────── */
 function safeParseAI(aiResponse) {
   if (!aiResponse) return null;
+  if (typeof aiResponse === "object") return aiResponse;
+  if (typeof aiResponse !== "string") return aiResponse;
   try {
     let str = aiResponse.trim();
     if (str.startsWith("```")) {
@@ -246,7 +248,7 @@ function safeParseAI(aiResponse) {
 
 /* ─── Winner card ────────────────────────────────────────────────────────────── */
 function WinnerCard({ products, aiData }) {
-  if (aiData && aiData.winner && (aiData.winner.name || aiData.winner.reason)) {
+  if (aiData && aiData.winner && (aiData.winner.name || aiData.winner.reason || aiData.winner.productId)) {
     return (
       <section className="cp-section" aria-label="AI Winner Analysis">
         <div className="cp-winner-card cp-winner-card--active">
@@ -264,7 +266,7 @@ function WinnerCard({ products, aiData }) {
           </p>
           <div className="cp-winner-coming-chip cp-winner-coming-chip--active">
             <span className="cp-winner-dot cp-winner-dot--active" aria-hidden="true" />
-            Powered by Gemini AI · Verified Comparison
+            Powered by Groq AI · Verified Comparison
           </div>
         </div>
       </section>
@@ -286,7 +288,7 @@ function WinnerCard({ products, aiData }) {
         </p>
         <div className="cp-winner-coming-chip">
           <span className="cp-winner-dot" aria-hidden="true" />
-          Powered by Gemini AI · Generating Analysis...
+          Powered by Groq AI · Generating Analysis...
         </div>
       </div>
     </section>
@@ -326,8 +328,8 @@ function CompareTable({ products, aiData }) {
               </div>
               {products.map((p) => {
                 const val = row.getVal(p);
-                const aiVal = aiData?.nutrition?.[row.key];
-                const hasAiVal = aiVal && aiVal !== "Information not available.";
+                const aiVal = aiData?.nutrition?.[row.key] || aiData?.[row.key];
+                const hasAiVal = aiVal && aiVal !== "Information not available." && aiVal !== "Information not available";
 
                 return (
                   <div
@@ -338,11 +340,11 @@ function CompareTable({ products, aiData }) {
                     {val ? (
                       <span className="cp-table-value">{val}</span>
                     ) : hasAiVal ? (
-                      <span className="cp-table-value cp-table-value--ai" title="Populated by Gemini AI">
+                      <span className="cp-table-value cp-table-value--ai" title="Populated by AI">
                         ✨ {aiVal}
                       </span>
                     ) : aiData ? (
-                      <span className="cp-table-value cp-table-value--muted">Information not available.</span>
+                      <span className="cp-table-value cp-table-value--muted">—</span>
                     ) : (
                       <span className="cp-ai-phase-tag" title="Populating AI comparison...">🤖 Generating...</span>
                     )}
@@ -496,8 +498,8 @@ function RelatedSection({ relatedProducts }) {
 
 /* ─── AI Analysis Sections (Phase 4C Live JSON Cards) ────────────────────────── */
 function AIAnalysisSection({ comparison, aiData, petLabel, onRetry }) {
-  // If AI completed and we parsed the JSON successfully
-  if (comparison?.aiStatus === "completed" && aiData) {
+  // If AI completed and/or we parsed the JSON successfully
+  if (aiData && (comparison?.aiStatus === "completed" || aiData.winner || aiData.summary || aiData.nutrition || aiData.pros || aiData.cons || aiData.finalRecommendation)) {
     return (
       <section className="cp-ai-live-sections" aria-label="Detailed AI Analysis">
         {/* 📝 Summary */}
@@ -511,25 +513,25 @@ function AIAnalysisSection({ comparison, aiData, petLabel, onRetry }) {
         )}
 
         {/* 💪 Nutrition Breakdown */}
-        {aiData.nutrition && (
+        {(aiData.nutrition || aiData.protein || aiData.fat || aiData.fiber || aiData.ingredients) && (
           <div className="cp-section">
             <div className="cp-section-title">💪 Nutrition &amp; Ingredients Overview</div>
             <div className="cp-ai-card cp-ai-card--grid">
               <div className="cp-ai-subitem">
                 <strong className="cp-ai-subtitle">Protein Content</strong>
-                <p className="cp-ai-subtext">{aiData.nutrition.protein || "Information not available."}</p>
+                <p className="cp-ai-subtext">{aiData.nutrition?.protein || aiData.protein || "—"}</p>
               </div>
               <div className="cp-ai-subitem">
                 <strong className="cp-ai-subtitle">Fat Content</strong>
-                <p className="cp-ai-subtext">{aiData.nutrition.fat || "Information not available."}</p>
+                <p className="cp-ai-subtext">{aiData.nutrition?.fat || aiData.fat || "—"}</p>
               </div>
               <div className="cp-ai-subitem">
                 <strong className="cp-ai-subtitle">Fiber Content</strong>
-                <p className="cp-ai-subtext">{aiData.nutrition.fiber || "Information not available."}</p>
+                <p className="cp-ai-subtext">{aiData.nutrition?.fiber || aiData.fiber || "—"}</p>
               </div>
               <div className="cp-ai-subitem">
                 <strong className="cp-ai-subtitle">Ingredient Quality</strong>
-                <p className="cp-ai-subtext">{aiData.nutrition.ingredients || "Information not available."}</p>
+                <p className="cp-ai-subtext">{aiData.nutrition?.ingredients || aiData.ingredients || (typeof aiData.nutrition === "string" ? aiData.nutrition : "—")}</p>
               </div>
             </div>
           </div>
@@ -802,7 +804,9 @@ export default function ComparePage() {
   const petLabel   = comparison.petType ? capitalize(comparison.petType) : "Not specified";
   const breedLabel = comparison.breed   ? formatBreed(comparison.breed)  : null;
 
-  const aiData     = safeParseAI(comparison.aiResponse);
+  const aiData     = typeof comparison?.aiResponse === "string"
+    ? safeParseAI(comparison.aiResponse)
+    : comparison?.aiResponse;
 
   const titleProducts = products.map((p) => p.name).filter(Boolean);
   const pageTitle = titleProducts.length > 0

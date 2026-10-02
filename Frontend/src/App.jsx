@@ -32,6 +32,7 @@ import ContactPage from "./pages/ContactPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 import ComparePage from "./pages/ComparePage";
+import PublicPetProfilePage from "./pages/PublicPetProfilePage";
 
 
 function App() {
@@ -91,6 +92,7 @@ function App() {
         <Route path="/return-policy" element={<ReturnPolicyPage />} />
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/compare/:slug" element={<ComparePage />} />
+        <Route path="/p/:token" element={<PublicPetProfilePage />} />
       </Routes>
     </MainLayout>
   );

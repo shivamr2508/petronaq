@@ -25,6 +25,7 @@ const googleFeedRoutes = require("./routes/googleFeedRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const newsletterRoutes = require("./routes/newsletterRoutes");
 const compareRoutes = require("./routes/compareRoutes");
+const petRoutes = require("./routes/petRoutes");
 const Product = require("./models/Product");
 
 
@@ -70,7 +71,11 @@ app.use("/api/admin", adminRoutes);
 
 app.use("/api/coupons", couponRoutes);
 
+app.use("/api/coupons", couponRoutes);
+
 app.use("/api/compare", compareRoutes);
+
+app.use("/api/pets", petRoutes);
 
 app.get("/api/debug/groq", async (req, res) => {
   try {

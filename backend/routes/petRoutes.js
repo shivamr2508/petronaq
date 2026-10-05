@@ -7,6 +7,7 @@ const {
   generatePet,
   getPublicPetProfile,
   activatePet,
+  resetPetPin,
 } = require("../controllers/petController");
 
 // IP Rate limiter for activation
@@ -29,6 +30,9 @@ router.post("/activate", protect, activationLimiter, activatePet);
 // Admin Routes
 // @route   POST /api/pets/admin/generate
 router.post("/admin/generate", protect, admin, generatePet);
+
+// @route   POST /api/pets/admin/reset-pin
+router.post("/admin/reset-pin", protect, admin, resetPetPin);
 
 // Public Routes
 // @route   GET /api/pets/public/:token

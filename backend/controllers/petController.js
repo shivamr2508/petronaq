@@ -298,8 +298,54 @@ const activatePet = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Reset a Pet's activation PIN (Admin)
+ * @route   POST /api/pets/admin/reset-pin
+ * @access  Private/Admin
+ */
+const resetPetPin = async (req, res) => {
+  try {
+    let { petId, newPin } = req.body;
+
+    if (!petId || !newPin) {
+      return res.status(400).json({ success: false, message: "Please provide petId and newPin" });
+    }
+
+    petId = String(petId).trim();
+    newPin = String(newPin).trim();
+
+    const petIdRegex = /^PRN-\d+$/;
+    const pinRegex = /^\d{6}$/;
+
+    if (!petIdRegex.test(petId) || !pinRegex.test(newPin)) {
+      return res.status(400).json({ success: false, message: "Invalid Pet ID or PIN format" });
+    }
+
+    const pet = await Pet.findOne({ petId });
+    if (!pet) {
+      return res.status(404).json({ success: false, message: "Pet not found" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newPinHash = await bcrypt.hash(newPin, salt);
+
+    pet.activationPinHash = newPinHash;
+    await pet.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Activation PIN reset successfully."
+    });
+
+  } catch (error) {
+    console.error("Error resetting Pet PIN:", error);
+    res.status(500).json({ success: false, message: "Server error resetting PIN" });
+  }
+};
+
 module.exports = {
   generatePet,
   getPublicPetProfile,
   activatePet,
+  resetPetPin,
 };

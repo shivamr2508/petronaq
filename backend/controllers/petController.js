@@ -138,16 +138,12 @@ const getPublicPetProfile = async (req, res) => {
 
     // Build the public safe response
     const safeResponse = {
-      petId: pet.petId,
       petName: pet.petName,
-      species: pet.species,
       breed: pet.breed,
-      age: pet.age,
-      gender: pet.gender,
       photo: pet.photo,
-      color: pet.color,
-      identificationMarks: pet.identificationMarks,
       status: pet.status,
+      ownerName: pet.ownerName,
+      fullAddress: pet.fullAddress
     };
 
     // Only include contacts if privacy settings allow
@@ -163,12 +159,6 @@ const getPublicPetProfile = async (req, res) => {
         }));
     }
 
-    // Only include location if privacy settings allow
-    if (pet.privacySettings && pet.privacySettings.showLocation) {
-      safeResponse.city = pet.city;
-      safeResponse.area = pet.area;
-    }
-
     res.json({
       success: true,
       data: safeResponse,
@@ -179,7 +169,137 @@ const getPublicPetProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Activate a Pet ID
+ * @route   POST /api/pets/activate
+ * @access  Private
+ */
+const activatePet = async (req, res) => {
+  try {
+    let { 
+      petId, 
+      activationPin,
+      petName,
+      breed,
+      photo,
+      ownerName,
+      primaryPhone,
+      phone2,
+      phone3,
+      fullAddress 
+    } = req.body;
+
+    // 1. Input Validation & Sanitization
+    if (!petId || !activationPin || !petName || !breed || !ownerName || !primaryPhone || !fullAddress) {
+      return res.status(400).json({ success: false, message: "Activation failed. Please check all required fields, including Pet ID and PIN." });
+    }
+
+    petId = String(petId).trim();
+    activationPin = String(activationPin).trim();
+
+    const petIdRegex = /^PRN-\d+$/;
+    const pinRegex = /^\d{6}$/;
+
+    if (!petIdRegex.test(petId) || !pinRegex.test(activationPin)) {
+      return res.status(400).json({ success: false, message: "Activation failed. Please check your Pet ID and PIN." });
+    }
+
+    // 2. Find the Pet
+    const pet = await Pet.findOne({ petId });
+    if (!pet) {
+      return res.status(400).json({ success: false, message: "Activation failed. Please check your Pet ID and PIN." });
+    }
+
+    // 3. Check if already active
+    if (pet.activationStatus === "ACTIVE" || pet.ownerId) {
+      return res.status(400).json({ success: false, message: "This Pet ID is already activated" });
+    }
+
+    // 4. Pet-level brute force protection check
+    if (pet.activationLockedUntil && pet.activationLockedUntil > new Date()) {
+      return res.status(400).json({ success: false, message: "Activation failed. Please check your Pet ID and PIN." });
+    }
+
+    // 5. Verify PIN
+    const isMatch = await bcrypt.compare(activationPin, pet.activationPinHash);
+    
+    if (!isMatch) {
+      // Increment failed attempts
+      pet.activationFailedAttempts = (pet.activationFailedAttempts || 0) + 1;
+      
+      // Lock if 5 or more attempts
+      if (pet.activationFailedAttempts >= 5) {
+        pet.activationLockedUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 mins
+      }
+      
+      await pet.save();
+      
+      return res.status(400).json({ success: false, message: "Activation failed. Please check your Pet ID and PIN." });
+    }
+
+    // 6. Build Contacts Array
+    const contacts = [{
+      name: ownerName,
+      phone: primaryPhone,
+      type: "primary",
+      isPrimary: true,
+      isPublic: true
+    }];
+    if (phone2) {
+      contacts.push({ name: ownerName, phone: phone2, type: "secondary", isPrimary: false, isPublic: true });
+    }
+    if (phone3) {
+      contacts.push({ name: ownerName, phone: phone3, type: "other", isPrimary: false, isPublic: true });
+    }
+
+    // 7. Atomic update to claim ownership and save profile
+    const updatedPet = await Pet.findOneAndUpdate(
+      { 
+        _id: pet._id, 
+        activationStatus: "UNACTIVATED",
+        ownerId: null
+      },
+      {
+        $set: {
+          ownerId: req.user._id,
+          activationStatus: "ACTIVE",
+          activationFailedAttempts: 0,
+          activationLockedUntil: null,
+          petName: petName.trim(),
+          breed: breed.trim(),
+          photo: photo ? photo.trim() : "",
+          ownerName: ownerName.trim(),
+          fullAddress: fullAddress.trim(),
+          contacts: contacts
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedPet) {
+      return res.status(400).json({ success: false, message: "This Pet ID was just activated by another user" });
+    }
+
+    // 7. Return safe response
+    res.status(200).json({
+      success: true,
+      message: "Pet successfully activated",
+      data: {
+        petId: updatedPet.petId,
+        activationStatus: updatedPet.activationStatus,
+        publicToken: updatedPet.publicToken
+      }
+    });
+
+  } catch (error) {
+    console.error("Error activating Pet ID:", error);
+    // Generic error to not expose internal details
+    res.status(500).json({ success: false, message: "Server error during activation" });
+  }
+};
+
 module.exports = {
   generatePet,
   getPublicPetProfile,
+  activatePet,
 };

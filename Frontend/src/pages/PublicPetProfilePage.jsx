@@ -118,96 +118,45 @@ const PublicPetProfilePage = () => {
               {pet.breed || "Unknown Breed"} {pet.species && `• ${pet.species}`}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <span className="block text-gray-400 text-xs font-bold uppercase mb-1">Gender</span>
-                <span className="font-semibold text-gray-800">{pet.gender || "-"}</span>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <span className="block text-gray-400 text-xs font-bold uppercase mb-1">Age</span>
-                <span className="font-semibold text-gray-800">{pet.age || "-"}</span>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <span className="block text-gray-400 text-xs font-bold uppercase mb-1">Color</span>
-                <span className="font-semibold text-gray-800">{pet.color || "-"}</span>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <span className="block text-gray-400 text-xs font-bold uppercase mb-1">Marks</span>
-                <span className="font-semibold text-gray-800 line-clamp-1">{pet.identificationMarks || "-"}</span>
-              </div>
-            </div>
-
-            {(pet.city || pet.area) && (
-              <div className="flex items-start gap-2 text-gray-600 text-sm mb-4 bg-gray-50 p-3 rounded-xl">
-                <FaMapMarkerAlt className="text-red-500 mt-0.5" />
-                <span>
-                  {pet.area && `${pet.area}, `}{pet.city}
-                </span>
+            {(pet.ownerName || pet.fullAddress) && (
+              <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-700 mb-6 border border-gray-100 shadow-inner">
+                {pet.ownerName && (
+                  <p className="mb-2"><strong className="text-gray-900 block text-xs uppercase tracking-wide">Owner Name</strong> {pet.ownerName}</p>
+                )}
+                {pet.fullAddress && (
+                  <div className="flex items-start gap-2">
+                    <FaMapMarkerAlt className="text-red-500 mt-1 flex-shrink-0" />
+                    <p><strong className="text-gray-900 block text-xs uppercase tracking-wide">Address</strong> {pet.fullAddress}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-4">
+        <div className="space-y-4 mb-10">
           
           {pet.contacts && pet.contacts.length > 0 ? (
             pet.contacts.map((contact, idx) => (
               <div key={idx} className="flex gap-2">
                 <a 
                   href={`tel:${contact.phone}`} 
-                  className="flex-1 bg-[#1f2937] text-white py-4 px-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-gray-800 transition-colors"
+                  className={`flex-1 text-white py-4 px-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-colors ${idx === 0 ? 'bg-red-600 hover:bg-red-700 text-lg' : 'bg-[#1f2937] hover:bg-gray-800'}`}
                 >
-                  <FaPhone /> Call {contact.name || "Owner"}
+                  <FaPhone /> Call {contact.name || "Owner"} {idx === 0 ? "(Primary)" : ""}
                 </a>
-                {contact.whatsapp && (
-                  <a 
-                    href={`https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-green-500 text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors"
-                  >
-                    <FaWhatsapp className="text-xl" />
-                  </a>
-                )}
               </div>
             ))
           ) : (
             <div className="text-center text-gray-500 text-sm bg-gray-200 p-4 rounded-xl">
-              No public contact information available.
+              No contact information available.
             </div>
           )}
 
-          <button 
-            onClick={() => setShowFoundModal(true)}
-            className="w-full bg-white border-2 border-[#1f2937] text-[#1f2937] py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors"
-          >
-            <FaPaw /> I Found This Pet
-          </button>
         </div>
 
       </div>
-
-      {/* Temporary Found Modal */}
-      {showFoundModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl transform transition-all">
-            <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-              <FaCheckCircle />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Found Pet reporting will be available soon. Please use the contact buttons to reach the owner directly for now.
-            </p>
-            <button 
-              onClick={() => setShowFoundModal(false)}
-              className="w-full bg-[#1f2937] text-white py-3 rounded-xl font-bold shadow-md"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );

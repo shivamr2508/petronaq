@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://petronaq-production.up.railway.app",
+        target: "http://localhost:5000",
         changeOrigin: true
       }
     }

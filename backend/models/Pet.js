@@ -40,6 +40,14 @@ const petSchema = new mongoose.Schema(
       enum: ["UNACTIVATED", "ACTIVE", "DEACTIVATED"],
       default: "UNACTIVATED",
     },
+    activationFailedAttempts: {
+      type: Number,
+      default: 0,
+    },
+    activationLockedUntil: {
+      type: Date,
+      default: null,
+    },
 
     // Pet Information
     petName: { type: String, default: "" },
@@ -53,10 +61,12 @@ const petSchema = new mongoose.Schema(
 
     // Contact Information
     contacts: [contactSchema],
+    ownerName: { type: String, default: "" },
 
     // Location
     city: { type: String, default: "" },
     area: { type: String, default: "" },
+    fullAddress: { type: String, default: "" },
 
     // Pet Status
     status: {

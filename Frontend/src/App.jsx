@@ -33,7 +33,7 @@ import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 import ComparePage from "./pages/ComparePage";
 import PublicPetProfilePage from "./pages/PublicPetProfilePage";
-
+import PetActivationPage from "./pages/PetActivationPage";
 
 function App() {
   return (
@@ -92,6 +92,7 @@ function App() {
         <Route path="/return-policy" element={<ReturnPolicyPage />} />
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/compare/:slug" element={<ComparePage />} />
+        <Route path="/activate-pet" element={<PetActivationPage />} />
         <Route path="/p/:token" element={<PublicPetProfilePage />} />
       </Routes>
     </MainLayout>

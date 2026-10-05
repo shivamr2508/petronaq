@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPublicPetProfile } from "../services/petService";
-import { FaPhone, FaWhatsapp, FaExclamationTriangle, FaCheckCircle, FaPaw, FaMapMarkerAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaUser, FaPaw, FaHeart, FaPhoneAlt, FaExclamationTriangle } from "react-icons/fa";
+import { MdVerified } from "react-icons/md";
 import "../styles/publicProfile.css";
 
 const PublicPetProfilePage = () => {
@@ -32,13 +33,15 @@ const PublicPetProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="public-profile-center">
-        <div className="skeleton-loader">
-          <div className="skeleton-circle"></div>
-          <div className="skeleton-line" style={{ width: "50%", height: "32px" }}></div>
-          <div className="skeleton-line" style={{ width: "33%", height: "16px" }}></div>
-          <div className="skeleton-btn"></div>
-          <div className="skeleton-btn"></div>
+      <div className="public-profile-container">
+        <div className="public-profile-wrapper loading-wrapper">
+          <div className="skeleton-loader">
+            <div className="skeleton-circle"></div>
+            <div className="skeleton-line" style={{ width: "50%", height: "32px" }}></div>
+            <div className="skeleton-line" style={{ width: "33%", height: "16px" }}></div>
+            <div className="skeleton-btn"></div>
+            <div className="skeleton-btn"></div>
+          </div>
         </div>
       </div>
     );
@@ -46,14 +49,16 @@ const PublicPetProfilePage = () => {
 
   if (error) {
     return (
-      <div className="public-profile-center">
-        <div className="error-card">
-          <FaExclamationTriangle className="error-icon" />
-          <h2>Oops!</h2>
-          <p>{error}</p>
-          <Link to="/" className="btn-home">
-            Go to PetRonaq Home
-          </Link>
+      <div className="public-profile-container">
+        <div className="public-profile-wrapper error-wrapper">
+          <div className="error-card">
+            <FaExclamationTriangle className="error-icon" />
+            <h2>Oops!</h2>
+            <p>{error}</p>
+            <Link to="/" className="btn-home">
+              Go to PetRonaq Home
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -61,12 +66,14 @@ const PublicPetProfilePage = () => {
 
   if (pet?.status === "unactivated") {
     return (
-      <div className="public-profile-center">
-        <div className="error-card">
-          <FaPaw className="unactivated-icon" />
-          <h2>Unactivated Pet ID</h2>
-          <p>This PetRonaq ID has not been activated yet.</p>
-          <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>If you are the owner, please log in to your account to activate this tag.</p>
+      <div className="public-profile-container">
+        <div className="public-profile-wrapper error-wrapper">
+          <div className="error-card">
+            <FaPaw className="unactivated-icon" />
+            <h2>Unactivated Pet ID</h2>
+            <p>This PetRonaq ID has not been activated yet.</p>
+            <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>If you are the owner, please log in to your account to activate this tag.</p>
+          </div>
         </div>
       </div>
     );
@@ -74,88 +81,136 @@ const PublicPetProfilePage = () => {
 
   return (
     <div className="public-profile-container">
-      {/* Header / Banner */}
-      <div className="public-profile-header">
-        <h1>
-          <FaPaw /> PetRonaq Pet ID
-        </h1>
-        <p>{pet.petId}</p>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="public-profile-content">
+      <div className="public-profile-wrapper">
         
-        {/* Status Alert */}
-        {pet.status === "LOST" && (
-          <div className="status-alert lost">
-            <FaExclamationTriangle /> THIS PET IS REPORTED LOST
-          </div>
-        )}
-        {pet.status === "FOUND" && (
-          <div className="status-alert found">
-            <FaCheckCircle /> This pet has been marked as found
-          </div>
-        )}
-
-        {/* Pet Card */}
-        <div className="pet-card">
-          {/* Photo */}
-          <div className="pet-photo-container">
-            {pet.photo ? (
-              <img src={pet.photo} alt={pet.petName} className="pet-photo" />
-            ) : (
-              <div className="pet-photo-placeholder">
-                <FaPaw />
-                <span>No Photo Available</span>
-              </div>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="pet-details">
-            <h2>{pet.petName || "Unknown Pet"}</h2>
-            <p className="pet-breed">
-              {pet.breed || "Unknown Breed"} {pet.species && `• ${pet.species}`}
-            </p>
-
-            {(pet.ownerName || pet.fullAddress) && (
-              <div className="pet-owner-info">
-                {pet.ownerName && (
-                  <p><strong>Owner Name</strong> {pet.ownerName}</p>
-                )}
-                {pet.fullAddress && (
-                  <div className="address-row">
-                    <FaMapMarkerAlt />
-                    <p><strong>Address</strong> {pet.fullAddress}</p>
-                  </div>
-                )}
-              </div>
-            )}
+        {/* Header */}
+        <div className="profile-header">
+          <FaPaw className="header-icon" />
+          <div className="header-text">
+            <h1>PetRonaq</h1>
+            <p>Pet Profile</p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          {pet.contacts && pet.contacts.length > 0 ? (
-            pet.contacts.map((contact, idx) => (
-              <div key={idx} className="contact-row">
-                <a 
-                  href={`tel:${contact.phone}`} 
-                  className={`btn ${idx === 0 ? 'btn-primary' : 'btn-secondary'}`}
-                >
-                  <FaPhone /> Call {contact.name || "Owner"} {idx === 0 ? "(Primary)" : ""}
-                </a>
-              </div>
-            ))
+        {/* Photo */}
+        <div className="profile-photo-container">
+          {pet.photo ? (
+            <img src={pet.photo} alt={pet.petName} className="profile-photo" />
           ) : (
-            <div className="no-contact">
-              No contact information available.
+            <div className="profile-photo-placeholder">
+              <FaPaw />
             </div>
           )}
         </div>
 
-      </div>
+        {/* Content */}
+        <div className="profile-content">
+          
+          {/* Pet Title & Badge */}
+          <div className="pet-title-section">
+            <div className="pet-title-left">
+              <h1 className="pet-name">
+                {pet.petName || "Unknown"} <MdVerified className="verified-badge" />
+              </h1>
+              <p className="pet-breed">{pet.breed || "Unknown Breed"}</p>
+            </div>
+            <div className="pet-title-right">
+              <div className="safety-accent">
+                <FaHeart className="heart-icon" />
+                <div className="accent-text">
+                  <span>Love</span>
+                  <span>Care</span>
+                  <span>Always Safe</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          {/* Owner Card */}
+          {pet.ownerName && (
+            <div className="info-card">
+              <div className="info-icon-wrapper">
+                <FaUser className="info-icon" />
+              </div>
+              <div className="info-text">
+                <span className="info-label">Owner Name</span>
+                <span className="info-value">{pet.ownerName}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Contacts Section */}
+          {pet.contacts && pet.contacts.length > 0 && (
+            <div className="contacts-section">
+              {pet.contacts.map((contact, idx) => {
+                if (idx === 0) {
+                  return (
+                    <div key={idx} className="primary-contact-card">
+                      <div className="contact-info-row">
+                        <div className="info-icon-wrapper primary-icon-wrapper">
+                          <FaPhoneAlt className="primary-info-icon" />
+                        </div>
+                        <div className="info-text">
+                          <span className="info-label">Primary Phone</span>
+                          <span className="info-value">{contact.phone}</span>
+                        </div>
+                        <div className="primary-badge">Primary</div>
+                      </div>
+                      <a href={`tel:${contact.phone}`} className="btn-call-primary">
+                        <FaPhoneAlt /> Call Owner
+                      </a>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={idx} className="info-card secondary-contact-card">
+                      <div className="secondary-contact-left">
+                        <div className="info-icon-wrapper">
+                          <FaPhoneAlt className="info-icon" />
+                        </div>
+                        <div className="info-text">
+                          <span className="info-label">Phone {idx + 1} (Optional)</span>
+                          <span className="info-value">{contact.phone}</span>
+                        </div>
+                      </div>
+                      <a href={`tel:${contact.phone}`} className="btn-call-secondary">
+                        <FaPhoneAlt /> Call
+                      </a>
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          )}
+
+          {/* Address */}
+          {pet.fullAddress && (
+            <div className="info-card address-card">
+              <div className="info-icon-wrapper address-icon-wrapper">
+                <FaMapMarkerAlt className="address-info-icon" />
+              </div>
+              <div className="info-text">
+                <span className="info-label">Address</span>
+                <span className="info-value address-value">{pet.fullAddress}</span>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Footer */}
+        <div className="profile-footer">
+          <div className="footer-graphic">
+            <h2>Every Pet</h2>
+            <p>Deserves to be Home <FaHeart className="footer-heart" /></p>
+          </div>
+          <div className="footer-brand">
+            <h3>PetRonaq</h3>
+            <p>Keep Pets Safe &bull; Connected &bull; Always Loved</p>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };

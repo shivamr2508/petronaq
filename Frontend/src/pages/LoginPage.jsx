@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { loginUser } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -11,6 +12,11 @@ function LoginPage() {
 
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
+
+  // Security check to prevent open redirects (only allow relative paths)
+  const safeRedirect = redirect.startsWith("/") ? redirect : "/";
 
   const handleLogin = async (e)=>{
     e.preventDefault();
@@ -20,7 +26,7 @@ function LoginPage() {
       await loginUser(email,password);
         updateSuccess("Login successful", t);
          setTimeout(()=>{
-        window.location.href="/";
+        window.location.href = safeRedirect;
       }, 800);
     }catch{
       updateError("Invalid credentials", t);
@@ -42,7 +48,7 @@ function LoginPage() {
       updateSuccess("Login successful", t);
 
       setTimeout(()=>{
-        window.location.href="/";
+        window.location.href = safeRedirect;
       }, 800);
 
     }catch{

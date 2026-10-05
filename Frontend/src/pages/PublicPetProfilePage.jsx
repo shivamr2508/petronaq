@@ -73,6 +73,9 @@ const PublicPetProfilePage = () => {
             <h2>Unactivated Pet ID</h2>
             <p>This PetRonaq ID has not been activated yet.</p>
             <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>If you are the owner, please log in to your account to activate this tag.</p>
+            <Link to="/login?redirect=/activate-pet" className="btn-home" style={{ marginTop: "20px" }}>
+              Login & Activate Pet
+            </Link>
           </div>
         </div>
       </div>

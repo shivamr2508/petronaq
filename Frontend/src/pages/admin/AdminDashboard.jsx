@@ -269,6 +269,10 @@ function AdminDashboard() {
               Blogs
             </button>
 
+            <button onClick={()=>navigate("/admin/pets")}>
+              Pet IDs
+            </button>
+
           </div>
 
         </div>

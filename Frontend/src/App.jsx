@@ -21,6 +21,7 @@ import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ReviewPage from "./pages/ReviewPage";
 import AdminReviewsPage from "./pages/admin/AdminReviewsPage";
 import AdminBlogs from "./pages/admin/AdminBlogs";
+import AdminPets from "./pages/admin/AdminPets";
 import BlogEditorForm from "./components/admin/BlogEditorForm";
 import BlogHomePage from "./pages/BlogHomePage";
 import BlogListPage from "./pages/BlogListPage";
@@ -75,6 +76,7 @@ function App() {
         <Route path="/admin/edit-product/:id" element={<AdminEditProduct />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/coupons" element={<AdminCoupons />} />
+        <Route path="/admin/pets" element={<AdminPets />} />
         <Route path="/admin/blogs" element={<AdminBlogs />} />
         <Route path="/admin/blogs/add" element={<BlogEditorForm mode="create" />} />
         <Route path="/admin/blogs/edit/:id" element={<BlogEditorForm mode="edit" />} />
